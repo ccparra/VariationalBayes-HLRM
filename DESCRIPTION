@@ -1,0 +1,32 @@
+Package: VariationalBayesHLRM
+Type: Package
+Title: Bayesian Inference for Linear, Hierarchical, and Clustered Regression
+Version: 0.1.0
+Authors@R: person("Cristian", "Parra", role = c("aut", "cre"),
+    email = "cristian.parra@users.noreply.github.com")
+Author: Cristian Parra [aut, cre]
+Maintainer: Cristian Parra <cristian.parra@users.noreply.github.com>
+Description: Fits Gaussian linear regression, hierarchical linear regression,
+    and clustered hierarchical linear regression models using Markov chain
+    Monte Carlo, coordinate-ascent variational inference, or stochastic
+    variational inference. Provides explicit prior and simulation contracts,
+    posterior prediction, predictive scoring, cross-validation, posterior
+    predictive checks, and mixture relabeling.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.1.0
+Depends: R (>= 4.2.0)
+Imports:
+    clue,
+    gtools,
+    LaplacesDemon,
+    loo,
+    mvtnorm,
+    posterior,
+    R6,
+    stats,
+    utils
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

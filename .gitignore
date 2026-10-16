@@ -39,8 +39,35 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# Generated outputs live beside the run that creates them.
+**/output/*
+!**/output/.gitkeep
+thesis/final/code/run-output/
+
+# Thesis documents and private signatures kept locally.
+thesis/*/document/
+thesis/*/latex/sign.png
+thesis/final/latex/**/*.aux
+thesis/final/latex/**/*.bbl
+thesis/final/latex/**/*.blg
+thesis/final/latex/**/*.log
+thesis/final/latex/**/*.loa
+thesis/final/latex/**/*.lof
+thesis/final/latex/**/*.lot
+thesis/final/latex/**/*.out
+thesis/final/latex/**/*.toc
+
+# Regenerable binary objects and local archives
+*.rds
+*.zip
+tmp/
+
+# OS metadata
+.DS_Store
+
+# Local thesis reference papers (may be copyrighted)
+thesis/references/*.pdf
+paper/references/*.pdf
 
 # translation temp files
 po/*~
