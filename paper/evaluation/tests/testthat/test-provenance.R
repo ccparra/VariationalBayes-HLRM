@@ -6,6 +6,25 @@ test_that("configuration fingerprints are stable and sensitive to content", {
   expect_false(identical(.paper_fingerprint(first), .paper_fingerprint(changed)))
 })
 
+test_that("Git provenance distinguishes a clean tree from an unavailable repository", {
+  skip_if(!nzchar(Sys.which("git")))
+  repository <- tempfile("paper-clean-git-")
+  dir.create(repository)
+  on.exit(unlink(repository, recursive = TRUE), add = TRUE)
+  initialization <- system2("git", c("-C", repository, "init", "--quiet"))
+  expect_identical(initialization, 0L)
+  expect_identical(.paper_git_value(
+    repository, c("status", "--porcelain")), "")
+  writeLines("untracked", file.path(repository, "new-file.txt"))
+  expect_match(.paper_git_value(
+    repository, c("status", "--porcelain")), "new-file.txt", fixed = TRUE)
+
+  outside <- tempfile("paper-not-git-")
+  dir.create(outside)
+  on.exit(unlink(outside, recursive = TRUE), add = TRUE)
+  expect_true(is.na(.paper_git_value(outside, c("status", "--porcelain"))))
+})
+
 test_that("run provenance fingerprints package, suite and configuration", {
   configuration <- list(profile = "smoke", seed = 17L)
   first <- paper_run_provenance("TEST", "smoke", configuration, root)

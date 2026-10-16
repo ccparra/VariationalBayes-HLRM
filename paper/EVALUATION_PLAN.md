@@ -625,7 +625,7 @@ MCSE, coberturas, correlaciones o criterios pointwise.
 ## Pruebas de aceptación antes de experimentar
 
 Las pruebas actuales cubren los 17 puntos en ejemplos pequeños mediante tests
-del paquete, 31 bloques propios de la suite y ejecuciones smoke reanudables:
+del paquete, 32 bloques propios de la suite y ejecuciones smoke reanudables:
 generador/prior, equivalencia CAVI--SVI, reglas de parada, relabeling, WAIC
 marginal, predicción, reutilización de `y_rep`, métricas manuales, escalado sin
 fuga, persistencia y los tres DGP. También cubren contratos SPD, RNG,
