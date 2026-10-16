@@ -1,0 +1,1512 @@
+\begin{appendix}
+\chapter{Notation}
+\label{Appendix_A}
+
+\section{ Natural Exponential Family}
+
+\cite{ML_MURPHY} A pdf or pmf $p(\bm{x} \mid \bm{\theta})$,  belongs to the \emph{natural exponential family} it is $\bm{x}\sim \mathsf{NEF}(\bm{\eta})$, if its density (or mass) function can be written as:
+
+\begin{equation}
+\label{NEF}
+p(\bm{x} \mid \bm{\eta}) = h(\bm{x})\, \exp\left\{ \bm{\eta}^\top \bm{t}(\bm{x}) - a(\bm{\eta}) \right\} 
+\end{equation}
+
+where:
+
+\begin{itemize}
+\item $\bm{\eta} = g(\bm{\theta})  \ \leftrightarrow \ \bm{\theta} = g^{-1}(\bm{\eta})$, with $g(\cdot)$ is a function that maps the parameters $\bm{\theta}$ to the natural parameters $\bm{\eta}$.
+\item $h(\bm{x})$ is the base measure (e.g. Lebesgue measure).
+\item $\bm{t}(\bm{x})$ is the sufficient statistic.
+\item $a(\bm{\eta})$ is the log-partition function (log normalizer), such that:
+
+$$
+\int h(\bm{x}) \exp\left\{ \bm{\eta}^\top \bm{t}(\bm{x}) - a(\bm{\eta}) \right\} d\bm{x} = 1
+$$
+
+That is:
+
+\begin{equation}
+a(\bm{\eta}) = \log\left( \int h(\bm{x}) \exp\left\{ \bm{\eta}^\top \bm{t}(\bm{x}) \right\} d\bm{x} \right)
+\end{equation}
+
+And satisfies:
+
+\begin{itemize}
+\item[a)] $\nabla_{\bm{\eta}} a(\bm{\eta}) = \mathsf{E}_{\bm{\eta}}\left[\bm{t}(\bm{x})\right]$
+\item[b)] $\nabla_{\bm{\eta}}^2 a(\bm{\eta}) = \mathsf{Var}_{\bm{\eta}}\left[\bm{t}(\bm{x})\right]$
+\end{itemize}
+\end{itemize}
+
+\section{ Distributions}
+
+\begin{itemize}
+
+\item \textbf{Multivariate normal:}
+
+A $d \times 1$ random vector $\bm{X} = (X_1, \dots, X_d)^\top$ has a multivariate Normal distribution with parameters $\bm{\mu}$ and $\bm{\Sigma}$, denoted by $\bm{X} \mid \bm{\mu}, \bm{\Sigma} \sim \mathsf{N}_d(\bm{\mu}, \bm{\Sigma})$, if its density function is:
+
+$$
+p(\bm{x} \mid \bm{\mu}, \bm{\Sigma}) = (2\pi)^{-d/2} |\bm{\Sigma}|^{-1/2} \exp\left\{ -\frac{1}{2} (\bm{x} - \bm{\mu})^\top \bm{\Sigma}^{-1} (\bm{x} - \bm{\mu}) \right\}
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(\bm{x}) = \left(\bm{x},\ \bm{x}^\top\bm{x}\right)^\top$
+\item \textit{Natural parameter:} $
+\bm{\eta} = \left( \bm{\Sigma}^{-1} \bm{\mu},\ -\frac{1}{2} \bm{\Sigma}^{-1} \right)^\top
+$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = \left(\bm{\eta}_1,\ \bm{\eta}_2\right)^\top$, 
+$$
+\bm{\Sigma} = -\tfrac{1}{2}\bm{\eta}_2^{-1}, \qquad \bm{\mu} = -\tfrac{1}{2}\bm{\eta}_2^{-1}\bm{\eta}_1.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item $\mathsf{E}[\bm{X}] = \bm{\mu}$
+\item  $\mathsf{E}[\bm{X}^\top\bm{X}] = \bm{\Sigma} + \bm{\mu}^\top\bm{\mu}$
+\item $\mathsf{E}[\log p(\bm{X} \mid \bm{\mu}, \bm{\Sigma})]=-\frac{d}{2}\log(2\pi e)-\frac{1}{2}\log|\bm{\Sigma}|$
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Gamma:}
+
+A random variable $X$ has a Gamma distribution with parameters $\alpha, \beta > 0$, denoted by $X \mid \alpha, \beta \sim \mathsf{G}(\alpha, \beta)$, if its density function is:
+
+$$
+p(x \mid \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha - 1} \exp\{-\beta x\} \footnote{The the gamma function $\Gamma(\cdot)$:
+
+$$
+\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt
+$$
+}, \quad x > 0
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(x) = \left(\log x,\ x\right)^\top$
+\item \textit{Natural parameter:} $\bm{\eta} = (\alpha - 1,\ -\beta)^\top$
+\item \textit{Inverse mapping :} Given $\bm{\eta} = (\eta_1,\ \eta_2)^\top$, 
+$$
+\alpha = \eta_1 + 1, \qquad \beta = -\eta_2.
+$$
+\item \textit{Key Expectations:}
+\begin{itemize}
+\item $\mathsf{E}[X] = \dfrac{\alpha}{\beta}$
+\item $\mathsf{E}[\log X] = \psi(\alpha) - \log \beta$ \footnote{The digamma function $\psi(\cdot)$ is defined as the logarithmic derivative of the Gamma function:
+$$
+\psi(z) = \frac{d}{dz} \log \Gamma(z) = \frac{\Gamma'(z)}{\Gamma(z)}
+$$}
+\item $\mathsf{E}[\log p(X \mid \alpha, \beta) ]=\log\beta-\log\Gamma(\alpha)+(\alpha-1)\psi(\alpha)-\alpha$
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Inverse Gamma:}
+
+A random variable $X$ has an Inverse Gamma distribution with parameters $\alpha, \beta > 0$, denoted by $X \mid \alpha, \beta \sim \mathsf{IG}(\alpha, \beta)$, if its density function is:
+
+$$
+p(x \mid \alpha, \beta) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{-(\alpha + 1)} \exp\left\{ -\frac{\beta}{x} \right\}, \quad x > 0
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(x) = \left(\log x,\ \dfrac{1}{x}\right)^\top$
+\item \textit{Natural Parameter:} $\bm{\eta} = (-\alpha - 1,\ -\beta)^\top$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = (\eta_1,\ \eta_2)^\top$, 
+$$
+\alpha = -\eta_1 - 1, \qquad \beta = -\eta_2.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item $\mathsf{E}[X] = \dfrac{\beta}{\alpha-1}$, for $\alpha>1$
+\item $\mathsf{E}[\frac{1}{X}] = \dfrac{\alpha}{\beta}$
+\item $\mathsf{E}[\log X] = \log \beta - \psi(\alpha)$
+\item $\mathsf{E}[\log p(X \mid \alpha, \beta)] =-\log\beta-\log\Gamma(\alpha)+(\alpha+1)\psi(\alpha)-\alpha$
+\end{itemize}
+\end{itemize}
+
+\newpage
+
+\item \textbf{Inverse Wishart:}
+
+A $d \times d$ random matrix $\bm{W}$ has an Inverse Wishart distribution with parameters $\nu$ and $\bm{S}^{-1}$, denoted by $\bm{W}\mid\nu, \bm{S}^{-1} \sim \mathsf{IW}(\nu, \bm{S}^{-1})$, if its density function is:
+
+$$
+p(\bm{W}\mid\nu, \bm{S}^{-1}) =\dfrac{|\bm{S}|^{\frac{\nu}{2}}}{2^{\frac{d\nu}{2}}\Gamma_d{(\frac{\nu}{2})}}|\bm{W}|^{-(\nu + d + 1)/2} \exp\left\{ -\frac{1}{2} \operatorname{tr}(\bm{S} \bm{W}^{-1}) \right\}\footnote{The multivariate gamma function $\Gamma_d(\cdot)$: $$\Gamma_d(\alpha) = \pi^{d(d-1)/4} \prod_{j=1}^{d} \Gamma(\alpha - (j-1)/2)$$} , \quad \nu > 0, \quad \bm{S} > 0
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:}  $\bm{t}(\bm{W}) = \left(\bm{W}^{-1},\ \log|\bm{W}|\right)^\top$
+\item \textit{Natural parameter:} $
+\bm{\eta} = \left( -\frac{1}{2} \bm{S},\ -\frac{\nu + d + 1}{2} \right)
+$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = \left(\bm{\eta}_1,\ \eta_2\right)$,
+$$
+\bm{S} = -2\,\bm{\eta}_1, \qquad \nu = -2\,\eta_2 - d - 1.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item $\mathsf{E}[\bm{W}^{-1}] = \nu\bm{S}$
+\item $\mathsf{E}[\bm{W}] = \dfrac{\bm{S}^{-1}}{\nu - d - 1}$
+\item   $\mathbb{E}[\log|\bm{W}|] = -\sum_{i=1}^{d}\psi\left(\tfrac{\nu+1-i}{2}\right)-d\log 2+\log|\bm{S}^{-1}|$
+\item 
+\[
+\begin{split}
+\mathsf{E}[\log p(\bm{W}\mid\nu, \bm{S}^{-1}) ] =
+&\tfrac{\nu}{2}\log|\mathbf{S}| - \tfrac{\nu d}{2}\log 2 - \log\Gamma_d\left(\tfrac{\nu}{2}\right) \\
+&-\tfrac{\nu+d+1}{2}\left[
+-\sum_{i=1}^{d}\psi\left(\tfrac{\nu+1-i}{2}\right)-d\log 2+\log|\mathbf{S}^{-1}|
+\right] \\
+&-\tfrac{1}{2}\nu\operatorname{tr}\left(\mathbf{S}^{2}\right)
+\end{split}
+\]
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Dirichlet:}
+
+A $K \times 1$ random vector $\bm{X} = (X_1, \dots, X_K)$ has a Dirichlet distribution with parameter vector $\bm{\alpha} = (\alpha_1, \dots, \alpha_K)$, where $\alpha_k > 0$, denoted by $\bm{X}\mid\bm{\alpha} \sim \mathsf{Dir}(\bm{\alpha})$, with density function:
+
+$$
+p(\bm{x} \mid \bm{\alpha}) = 
+\begin{cases}
+\frac{\Gamma\left( \sum_{k=1}^{K} \alpha_k \right)}{\prod_{k=1}^{K} \Gamma(\alpha_k)} \prod_{k=1}^{K} x_k^{\alpha_k - 1}, & \text{if } \sum_{k=1}^{K} x_k = 1 \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(\bm{x}) = (\log x_1, \dots, \log x_K)^\top$
+\item \textit{Natural parameter:} $\bm{\eta}=(\alpha_1 - 1,\cdots,\alpha_K - 1)^\top$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = (\eta_1,\dots,\eta_K)^\top$,
+$$
+\alpha_k = \eta_k + 1,\quad k=1,\dots,K.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item $\mathsf{E}[X_k] = \dfrac{\alpha_k}{\sum_{k=1}^{K}\alpha_k}$.
+\item $\mathsf{E}[\log X_k] = \psi(\alpha_k) - \psi(\sum_{k=1}^{K}\alpha_k)$
+\item $\mathsf{E}[\log p(\bm{X} \mid \bm{\alpha})] = \log\Gamma\left( \sum_{k=1}^{K} \alpha_k \right)-\sum_{k=1}^{K} \log\Gamma(\alpha_k)+\sum_{k=1}^{K}(\alpha_k-1)\left(\psi(\alpha_k) - \psi(\sum_{k=1}^{K}\alpha_k)\right)$
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Categorical:}
+
+A $K \times 1$ random vector $\bm{X} = (X_1, \dots, X_K)$ has a categorical distribution with parameter vector $\bm{p} = (p_1, \dots, p_K)$, where $\sum_{k=1}^{K} p_k = 1$, denoted by $\bm{X}\mid\bm{p} \sim \mathsf{Cat}(\bm{p})$, with mass function:
+
+$$
+p(\bm{x} \mid \bm{p}) = 
+\begin{cases}
+\prod_{k=1}^{K} p_k^{[x_k = k]}, & \text{if } \sum_{k=1}^{K} x_k = 1 \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(\bm{x}) = \left([x = 1 ], \dots, [x = K]\right)^\top$\footnote{The Inversion Bracket $[\cdot]$:
+\[
+[x=k]=\begin{cases}
+1, & \text{if } x=k\\
+0, & \text{otherwise }
+\end{cases}
+\]}
+\item \textit{Natural parameter:}  $\bm{\eta}=(\log p_1,\cdots,\log p_k)^\top$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = (\eta_1,\dots,\eta_K)^\top$, 
+$$
+p_k = \exp(\eta_k), \quad k=1,\dots,K.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item  $\mathsf{E}[X_k] = p_k$
+\item $\mathsf{E}[\log p(\bm{X} \mid \bm{p})] = \sum_{k=1}^{K}p_k\log p_k $
+\end{itemize}
+\end{itemize}
+
+\newpage
+
+\item \textbf{Multinomial:}
+
+A $K \times 1$ random vector $\bm{X} = (X_1, \dots, X_K)^\top$ with $\sum_{k=1}^{K} X_k = n$ has a multinomial distribution with parameter vector $\bm{p} = (p_1, \dots, p_K)$, where $\sum_{k=1}^{K} p_k = 1$, denoted by $\bm{X}\mid n,\bm{p} \sim \mathsf{Mult}(n,\bm{p})$, with mass function:
+
+$$
+p(\bm{x} \mid n, \bm{p}) = \frac{n!}{x_1!\,x_2!\cdots x_K!}\prod_{k=1}^{K} p_k^{x_k}, \quad \text{such that } \sum_{k=1}^{K} x_k = n.
+$$
+
+\begin{itemize}
+\item \textit{Sufficient statistics:} $\bm{t}(\bm{x}) = \left(x_1, x_2, \dots, x_K\right)^\top$
+\item \textit{Natural parameter:}  $\bm{\eta} = \left(\log p_1,\ \log p_2,\ \dots,\ \log p_K \right)^\top$
+\item \textit{Inverse mapping:} Given $\bm{\eta} = (\eta_1,\dots,\eta_K)^\top$, 
+$$
+p_k = \exp(\eta_k), \quad k=1,\dots,K.
+$$
+\item \textit{Key Expectations:} 
+\begin{itemize}
+\item $\mathsf{E}[X_k] = n\,p_k$
+\item $\mathsf{E}[\log p(\bm{X} \mid n,\bm{p})] = \log(n!) - \sum_{k=1}^{K}\mathsf{E}[\log(X_k!)] + n\sum_{k=1}^{K} p_k \log p_k$
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\chapter{MCMC Details}
+\label{Appendix_B}
+
+This section presents the explicit derivation of full conditional distributions \ref{fcd} ,for linear regression models considered in this work, here $p(\cdot\mid\textsf{rest})$ denotes the f.c.d.
+
+\section{Linear Regression Model (LRM)}
+
+\begin{itemize}
+\item Full Posterior Distribution
+
+\begin{equation}
+\begin{split}
+p(\bm{\Theta} \mid \bm{y}, \bm{X}) &\propto 
+p(\bm{y} \mid \bm{X}, \bm{\beta}, \sigma^2) \,
+p(\bm{\beta} \mid \bm{\beta}_0, \bm{\Sigma}_0) \,
+p(\sigma^2 \mid \nu_0, \sigma_0^2) \\
+&\propto \frac{1}{|\sigma^2 \bm{I_n}|^{1/2}}
+\exp\left\{ -\frac{1}{2} (\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\sigma^2 \bm{I_n})^{-1} (\bm{y} - \bm{X} \bm{\beta}) \right\} \\
+&\quad \times \frac{1}{|\bm{\Sigma}_0|^{1/2}} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\beta}_0)^{\top}
+\bm{\Sigma}_0^{-1} (\bm{\beta} - \bm{\beta}_0) \right\} \\
+&\quad \times \frac{(\nu_0 \sigma_0^2 / 2)^{\nu_0 / 2}}{\Gamma(\nu_0 / 2)} \,
+(\sigma^2)^{-(\nu_0/2 + 1)} 
+\exp\left\{ -\frac{\nu_0 \sigma_0^2}{2\sigma^2} \right\} \\
+&\propto (\sigma^2)^{-n/2} 
+\exp\left\{ -\frac{1}{2} (\sigma^2)^{-1} (\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\beta}_0)^{\top}
+\bm{\Sigma}_0^{-1} (\bm{\beta} - \bm{\beta}_0) \right\} \\
+&\quad \times (\sigma^2)^{-(\nu_0/2 + 1)} 
+\exp\left\{ -\frac{\nu_0 \sigma_0^2}{2\sigma^2} \right\} \\
+&\propto (\sigma^2)^{-\left( \frac{\nu_0 + n}{2} + 1 \right)}
+\exp\left\{ -\frac{1}{2\sigma^2} (\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{\nu_0 \sigma_0^2}{2\sigma^2} \right\}
+\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\beta}_0)^{\top}
+\bm{\Sigma}_0^{-1} (\bm{\beta} - \bm{\beta}_0) \right\}
+\end{split}
+\end{equation}
+
+\newpage
+
+\item f.c.d of $\bm{\beta}$ 
+
+\begin{equation}
+\begin{split}
+p(\bm{\beta} \mid \text{rest})&\propto 
+p(\bm{y} \mid \bm{X}, \bm{\beta}, \sigma^2)
+p(\bm{\beta} \mid \bm{\beta}_0, \bm{\Sigma}_0) \\
+&\propto \exp\left\{ -\frac{1}{2\sigma^2} (\bm{y}^\top \bm{y} - \bm{y}^\top \bm{X} \bm{\beta} - \bm{\beta}^\top\bm{X}^\top \bm{y} + \bm{\beta}^\top \bm{X}^\top \bm{X} \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} \left( \bm{\beta}^\top \bm{\Sigma}_0^{-1} \bm{\beta} -  \bm{\beta}^\top \bm{\Sigma}_0^{-1} \bm{\beta}_0 - \bm{\beta}_0^\top \bm{\Sigma}_0^{-1} \bm{\beta} + \bm{\beta}_0^\top \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2\sigma^2} (\bm{\beta}^\top \bm{X}^\top \bm{X} \bm{\beta} - 2 \bm{\beta}^\top \bm{X}^\top \bm{y}) \right\} \times \exp\left\{ -\frac{1}{2} (\bm{\beta}^\top \bm{\Sigma}_0^{-1} \bm{\beta} - 2 \bm{\beta}^\top \bm{\Sigma}_0^{-1} \bm{\beta}_0) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2} \left( \bm{\beta}^\top \left( \frac{1}{\sigma^2} \bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right) \bm{\beta} - 2 \bm{\beta}^\top \left( \frac{1}{\sigma^2} \bm{X}^\top \bm{y} + \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right) \right) \right\} \\
+\bm{\beta} \mid \text{rest} &\sim \mathsf{N_p}\left(\left( \frac{1}{\sigma^2} \bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right)^{-1}\left( \frac{1}{\sigma^2} \bm{X}^\top \bm{y} + \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right), \left( \frac{1}{\sigma^2} \bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right)^{-1}\right)
+\end{split}
+\end{equation}
+
+\item f.c.d of $\sigma^2$
+
+\begin{equation}
+\begin{split}
+p(\sigma^2 \mid \text{rest})&\propto 
+p(\bm{y} \mid \bm{X}, \bm{\beta}, \sigma^2)
+p(\sigma^2 \mid \nu_0, \sigma_0^2) \\
+&\propto (\sigma^2)^{-\left(\frac{n + \nu_0}{2} + 1\right)} 
+\exp\left\{ -\frac{1}{2} (\sigma^2)^{-1} (\bm{y} - \bm{X} \bm{\beta})^\top (\bm{y} - \bm{X} \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} (\sigma^2)^{-1} \nu_0 \sigma_0^2 \right\} \\
+&\propto (\sigma^2)^{-\left(\frac{n + \nu_0}{2} + 1\right)} 
+\exp\left\{ - \frac{\nu_0 \sigma_0^2 + (\bm{y} - \bm{X} \bm{\beta})^\top (\bm{y} - \bm{X} \bm{\beta})}{2\sigma^2} \right\} \\
+\sigma^2 \mid \text{rest} &\sim \mathsf{IG}\left( \frac{n + \nu_0}{2}, \frac{\nu_0 \sigma_0^2 + (\bm{y} - \bm{X} \bm{\beta})^\top (\bm{y} - \bm{X} \bm{\beta})}{2} \right)
+\end{split}
+\end{equation}
+
+\end{itemize}
+
+\newpage
+
+\section{Hierarchical Linear Regression Model (HLRM)}
+
+\begin{itemize}
+
+\item Full Posterior Distribution
+
+\begin{equation}
+\begin{split}
+p(\bm{\Theta} \mid\bm{y}, \bm{X}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\zeta} ,\bm{\sigma^2}) 
+p(\bm{\zeta} \mid \bm{\beta}, \bm{\Sigma}) 
+p(\bm{\beta}) 
+p(\bm{\Sigma}) 
+p(\bm{\sigma^2}\mid 
+\xi^2)
+p(\xi) \\
+&\propto \prod_{j=1}^{m}  ({\sigma}_j^2)^{-n_j/2} 
+\exp\left\{ -\frac{1}{2\sigma_j^2} (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j) \right\} \\
+&\quad\times \prod_{j=1}^{m} \left| \bm{\Sigma} \right|^{-1/2} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta}_j -  \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\mu}_0)^\top \bm{\Lambda}_0^{-1} (\bm{\beta} - \bm{\mu}_0) \right\}
+\times |\bm{\Sigma}|^{-(n_0 + p + 1)/2} 
+ \exp\left\{ -\frac{1}{2} \mathrm{tr}(\bm{S}_0 \bm{\Sigma}^{-1}) \right\} \\
+&\quad \times \prod_{j=1}^{m} (\xi^2)^{\nu_0 / 2 - 1} 
+(\sigma_j^2)^{-(\nu_0 / 2+1)} 
+\exp\left\{ -\frac{\nu_0 \xi^2}{2 \sigma_j^2} \right\} 
+\times (\xi^2)^{a_0 - 1} \exp\left\{ -b_0 \xi^2 \right\}
+\end{split}
+\end{equation}
+
+\item f.c.d of $\bm{\beta}_j$ for $j=1,\cdots,m$
+
+\begin{equation}
+\begin{split}
+p(\bm{\beta}_j \mid \text{rest}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\zeta} ,\bm{\sigma^2}) 
+p(\bm{\zeta} \mid \bm{\beta}, \bm{\Sigma}) \\
+&\propto 
+\prod_{j=1}^{m} \exp \left\{ -\frac{1}{2\sigma_j^2} (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)  \right\} \times\exp \left\{ -\frac{1}{2} \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\propto \exp \left\{ -\frac{1}{2} \sum_{j=1}^{m}  \left[\sigma_{j}^{-2}\left( \bm{y}_j^\top\bm{y}_j - 2 \bm{\beta}_j^\top \bm{X}_j^\top  \bm{y}_{j} \bm{\beta}_j + \bm{\beta}_j^\top \bm{X}_{j}^{\top} \bm{X}_{j} \bm{\beta}_j \right) \right]\right\} \\
+&\quad \times \exp \left\{ -\frac{1}{2} \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\propto \exp \left\{ -\frac{1}{2} \left[ \sum_{j=1}^{m} {\sigma}_j^{-2} \left( \bm{\beta}_j^\top \bm{X}_{j}^\top \bm{X}_{j} \bm{\beta}_j - 2 \bm{\beta}_j^\top \bm{X}_{j}^\top \bm{y}_{j} \right) \right. \right. \\
+&\quad + \left. \left. \sum_{j=1}^{m} \left( \bm{\beta}_j^\top \bm{\Sigma}^{-1} \bm{\beta}_j - \bm{\beta}_j^\top \bm{\Sigma}^{-1} \bm{\beta} - \bm{\beta}^\top \bm{\Sigma}^{-1} \bm{\beta}_j + \bm{\beta}^\top \bm{\Sigma}^{-1} \bm{\beta} \right) \right] \right\} \\
+&\propto \exp \left\{ -\frac{1}{2} \sum_{j=1}^{m} 
+\left( 
+\bm{\beta}_j^\top \left[ ({\sigma_j}^{-2})\bm{X}_{j}^\top \bm{X}_{j} + \bm{\Sigma}^{-1} \right] \bm{\beta}_j 
+- 2 \bm{\beta}_j^\top \left[ ({\sigma_j}^{-2}) \bm{X}_{j}^\top \bm{y}_{j} + \bm{\Sigma}^{-1} \bm{\beta} \right]
+\right) \right\} \\
+\bm{\beta}_j \mid \text{rest} &\sim \mathsf{N_p} \left( 
+\left[ ({\sigma_j}^{-2}) \bm{X}_{j}^\top \bm{X}_{j} + \bm{\Sigma}^{-1} \right]^{-1}
+\left[ ({\sigma_j}^{-2}) \bm{X}_{j}^\top \bm{y}_{j} + \bm{\Sigma}^{-1} \bm{\beta} \right], \ 
+\left[ (\sigma_j^{-2}) \bm{X}_{j}^\top \bm{X}_{j}  + \bm{\Sigma}^{-1} \right]^{-1}
+\right)
+\end{split}
+\end{equation}
+
+\newpage
+
+\item f.c.d of $\bm{\beta}$
+
+\begin{equation}
+\begin{split}
+p(\bm{\beta} \mid \text{rest})
+&\propto p(\bm{\zeta} \mid \bm{\beta}, \bm{\Sigma}) 
+p(\bm{\beta}) \\
+&\propto \prod_{j=1}^{m}  \exp\left\{ -\frac{1}{2} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\mu}_0)^\top \bm{\Lambda}_0^{-1} (\bm{\beta} - \bm{\mu}_0) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2} \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\}\\
+&\quad\times\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\mu}_0)^\top \bm{\Lambda}_0^{-1} (\bm{\beta} - \bm{\mu}_0) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2}  \sum_{j=1}^{m} \left( \bm{\beta}_j^\top \bm{\Sigma}^{-1} \bm{\beta}_j + \bm{\beta}^\top \bm{\Sigma}^{-1} \bm{\beta} - 2 \bm{\beta}_j^\top \bm{\Sigma}^{-1} \bm{\beta} \right) \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} \left( \bm{\beta}^\top \bm{\Lambda}_0^{-1} \bm{\beta} - 2 \bm{\mu}_0^\top \bm{\Lambda}_0^{-1} \bm{\beta} + \bm{\mu}_0^\top \bm{\Lambda}_0^{-1} \bm{\mu}_0 \right) \right\}\\
+&\propto \exp\left\{ -\frac{1}{2} \left[ 
+\bm{\beta}^\top \left( \bm{\Lambda}_0^{-1} + m \bm{\Sigma}^{-1} \right) \bm{\beta}
+- 2 \bm{\beta}^\top \left( \sum_{j=1}^{m} \bm{\Sigma}^{-1} \bm{\beta}_j + \bm{\Lambda}_0^{-1} \bm{\mu}_0 \right)
+\right] \right\}\\
+\bm{\beta} \mid \text{rest} &\sim \mathsf{N}_p \left(
+\left( \bm{\Lambda}_0^{-1} + m \bm{\Sigma}^{-1} \right)^{-1}
+\left( \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \bm{\Sigma}^{-1} \sum_{j=1}^{m} \bm{\beta}_j \right),
+\left( \bm{\Lambda}_0^{-1} + m \bm{\Sigma}^{-1} \right)^{-1}\right)
+\end{split}
+\end{equation}
+
+\item f.c.d of $\bm{\Sigma}$
+
+\begin{equation}
+\begin{split}
+p(\bm{\Sigma} \mid \text{rest}) 
+&\propto  p(\bm{\zeta} \mid \bm{\beta}, \bm{\Sigma}) 
+p(\bm{\Sigma}) \\
+&\propto |\bm{\Sigma}|^{-m/2} \exp\left\{ -\frac{1}{2} \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\quad \times |\bm{\Sigma}|^{-(n_0 + p + 1)/2} \exp\left\{ -\frac{1}{2} \operatorname{tr}(\bm{S}_0 \bm{\Sigma}^{-1}) \right\} \\[6pt]
+&\propto |\bm{\Sigma}|^{-(n_0 + m + p + 1)/2} 
+\exp\left\{ -\frac{1}{2} \operatorname{tr} \left(\left[ \bm{S}_0 + \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})(\bm{\beta}_j - \bm{\beta})^\top\right]  \bm{\Sigma}^{-1} \right)\right\}\\
+\bm{\Sigma} \mid \text{rest} &\sim \mathsf{IW} \left( 
+n_0 + m,\ 
+\left( \bm{S}_0 + \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})(\bm{\beta}_j - \bm{\beta})^\top\right)^{-1}
+\right)
+\end{split}
+\end{equation}
+
+\newpage
+
+\item f.c.d of $\sigma_j^2$ for $j=1,\cdots,m$
+
+\begin{equation}
+\begin{split}
+p(\sigma_j^2 \mid \text{rest}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\zeta} ,\bm{\sigma^2}) 
+p(\bm{\sigma^2}\mid 
+\xi^2) \\
+&\propto  ( \sigma_j^2)^{-n_j/2} 
+\exp \left\{ -\frac{1}{2\sigma_j^2} (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)  \right\} \\
+&\quad \times  (\sigma_j^2)^{-(\nu_0 / 2 + 1)} 
+\exp\left\{ -\frac{\nu_0 \xi}{2\sigma_j^2} \right\}\\
+&\propto  (\sigma_j^2)^{-\left( \frac{n_j + \nu_0}{2} + 1 \right)} 
+\exp\left\{ -\frac{1}{2\sigma_j^2} \left( \nu_0 \xi^2 +  (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j) \right) \right\}\\
+\sigma_j^2 \mid \text{rest} &\sim \mathsf{IG} \left( 
+\frac{n_j + \nu_0}{2},\ 
+\frac{ \nu_0 \xi^2 +  (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)}{2} 
+\right)
+\end{split}
+\end{equation}
+
+
+\item f.c.d of $\xi^2$
+
+\begin{equation}
+\begin{split}
+p(\xi^2 \mid \text{rest}) 
+&\propto  p(\bm{\sigma^2}\mid 
+\xi^2)
+p(\xi) \\
+&\propto \prod_{j=1}^{m} (\xi^2)^{\nu_0/2} 
+\exp\left\{ -\frac{\nu_0 \xi^2 / 2}{\sigma_j^2} \right\}
+\times (\xi^2)^{a_0 - 1} \exp\left\{ -b_0 \xi^2 \right\} \\[6pt]
+&\propto (\xi^2)^{m \nu_0/2 + a_0 - 1} 
+\exp\left\{ -\xi^2 \left( \frac{\nu_0}{2} \sum_{j=1}^{m} \sigma_j^{-2} + b_0 \right) \right\}\\
+\xi^2 \mid \text{rest} &\sim \mathsf{G} \left(
+\frac{m \nu_0}{2} + a_0,\ 
+b_0 + \frac{\nu_0}{2} \sum_{j=1}^{m} \sigma_j^{-2}
+\right)
+\end{split}
+\end{equation}
+
+\end{itemize}
+
+\newpage
+
+\section{Clustering Hierarchical Linear Regression Model (CHLRM)}
+
+\begin{itemize}
+
+\item Full Posterior Distribution
+
+\begin{equation}
+\begin{split}
+p(\bm{\Theta} \mid\bm{y}, \bm{X}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\gamma}, \bm{\zeta}, \bm{\sigma}^2) 
+\, p(\bm{\gamma} \mid \bm{\omega}) 
+\, p(\bm{\omega}) 
+\, p(\bm{\xi} \mid\bm{\beta},\bm{\Sigma}) \, p(\bm{\beta}) 
+p(\bm{\Sigma}) 
+\, p(\bm{\sigma}^2 \mid \xi^2) 
+\, p(\xi^2) \\
+&\propto \prod_{j=1}^{m}\prod_{k=1}^{K} \left(\prod_{i=1}^{n_j} (\sigma_{\gamma_j}^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_{\gamma_j}^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_{\gamma_j})^2 \right\} \right)^{[\gamma_j = k]}\\
+&\quad \times\prod_{j=1}^{m} \prod_{k=1}^{K} \omega_k ^{[\gamma_j = k]}\times\prod_{k=1}^{K}\omega_k^{\alpha_{0k}-1}\\
+&\quad \times \prod_{j=1}^{m} |\bm{\Sigma}|^{-1/2} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta}_j - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_j - \bm{\beta}) \right\} \\
+&\quad \times \prod_{k=1}^{K} |\bm{\Sigma}|^{-1/2} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta}_k - \bm{\mu}_0)^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\mu}_0) \right\} \\
+&\quad \times |\bm{\Sigma}|^{-(n_0 + p + 1)/2} 
+\exp\left\{ -\frac{1}{2} \operatorname{tr}(\bm{S}_0 \bm{\Sigma}^{-1}) \right\} \\
+&\quad \times \prod_{j=1}^{m} (\sigma_j^2)^{-\left(\nu_0 / 2 + 1\right)} 
+\exp\left\{ -\frac{\nu_0 \xi^2}{2\sigma_j^2} \right\} \\
+&\quad \times \prod_{j=1}^{m} (\xi^2)^{a_0 - 1} 
+\exp\left\{ -b_0 \xi^2 \right\}
+\end{split}
+\end{equation}
+
+\item f.c.d of $\gamma_j$ for $j=1,\cdots,m$
+
+\begin{equation}
+\begin{split}
+p(\gamma_j \mid \text{rest}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\gamma}, \bm{\zeta}, \bm{\sigma}^2) 
+\, p(\bm{\gamma} \mid \bm{\omega}) 
+\\
+&\propto \prod_{k=1}^{K} \left(\prod_{i=1}^{n_j} (\sigma_{\gamma_j}^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_{\gamma_j}^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_{\gamma_j})^2 \right\} \right)^{[\gamma_j = k]} \times \prod_{k=1}^{K} \omega_k^{[{\gamma}_j = k]}\\
+\text{If } \gamma_j=k\quad p(\gamma_j = k \mid \text{rest}) 
+&\propto \omega_k \prod_{i=1}^{n_j} (\sigma_k^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_k^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_k)^2 \right\}\\
+\gamma_j\mid \text{rest}&\sim \mathsf{Cat}\left(\left\lbrace p(\gamma_j = 1 \mid \text{rest}),\dots,p(\gamma_j = K \mid \text{rest}\right) \rbrace\right)\\
+\end{split}
+\end{equation}
+
+\newpage
+
+\item f.c.d of $\bm{\omega}$
+
+\begin{equation}
+\begin{split}
+p(\bm{\omega} \mid \text{rest}) 
+&\propto  p(\bm{\gamma} \mid \bm{\omega}) 
+\, p(\bm{\omega})\\
+&\propto \prod_{j=1}^{m} \prod_{k=1}^{K} \omega_k^{[\gamma_j = k]} 
+\times \prod_{k=1}^{K} \omega_k^{\alpha_{0k}-1} \\
+&\propto\prod_{j=1}^{m} \prod_{k=1}^{K} \omega_k^{[\gamma_j = k]+{\alpha_{0k}-1}}\\
+&\propto \prod_{k=1}^{K} \omega_k^{n_k + \alpha_{0k} - 1}\\
+\bm{\omega} \mid \text{rest} \sim& \mathsf{Dir}(\alpha_{01} + n_1,\,  \dots,\, \alpha_{0K} + n_K)\\
+\end{split}
+\end{equation}
+
+with $\sum_{k=1}^{K} \left(n_k+\alpha_{0k}\right) = 1$ and $n_k=\#\left\lbrace j : \gamma_j=k\right\rbrace$
+
+\item f.c.d of $\bm{\beta}_k$ for $k=1,\cdots,K$
+
+\begin{equation}
+\begin{split}
+p(\bm{\beta}_{\gamma_j} \mid \text{rest}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\gamma}, \bm{\zeta}, \bm{\sigma}^2) 
+\, p(\bm{\xi} \mid\bm{\beta},\bm{\Sigma}) \\
+&\propto \prod_{k=1}^{K}\prod_{j=1}^{m} \left(\prod_{i=1}^{n_j} (\sigma_{\gamma_j}^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_{\gamma_j}^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_{\gamma_j})^2 \right\} \right)^{[\gamma_j = k]}\\ 
+&\quad \times \prod_{k=1}^{K} \exp\left\{ -\frac{1}{2} (\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\beta}) \right\} \\
+\text{if}\quad \gamma_j = k, \quad 
+p(\bm{\beta}_k \mid \text{rest}) 
+&\propto \prod_{\left\lbrace j : \gamma_j = k\right\rbrace} \prod_{i=1}^{n_j} (\sigma_k^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_k^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_k)^2 \right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2} (\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\beta}) \right\} \\
+&\propto \exp\left\{ - \sum_{\left\lbrace j : \gamma_j=k\right\rbrace}\sum_{i=1}^{n_j}\frac{1}{2\sigma_k^2}(y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_k)^2\right\} \\
+&\quad \times \exp\left\{ -\frac{1}{2}(\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1}(\bm{\beta}_k - \bm{\beta})\right\} \\
+&\propto \exp \left\{ -\frac{1}{2}\sigma_k^{-2} (\bm{y}_{k}-\bm{X}_{k}\bm{\beta}_k)^\top (\bm{y}_{k}-\bm{X}_{k}\bm{\beta}_k) \right\} \\
+&\quad \times \exp \left\{ -\frac{1}{2}(\bm{\beta}_k-\bm{\beta})^\top\bm{\Sigma}^{-1}(\bm{\beta}_k-\bm{\beta}) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2}\left[\bm{\beta}_k^\top(\sigma_k^{-2}\bm{X}_{k}^\top\bm{X}_{k}+\bm{\Sigma}^{-1})\bm{\beta}_k-2\bm{\beta}_k^\top(\sigma_k^{-2}\bm{X}_{k}^\top\bm{y}_{k}+\bm{\Sigma}^{-1}\bm{\beta})\right]\right\} \\
+\bm{\beta}_k \mid \text{rest} &\sim \mathsf{N_p}\left((\sigma_k^{-2}\bm{X}_{k}^\top\bm{X}_{k}+\bm{\Sigma}^{-1})^{-1}(\sigma_k^{-2}\bm{X}_{k}^\top\bm{y}_{k}+\bm{\Sigma}^{-1}\bm{\beta}) , (\sigma_k^{-2}\bm{X}_{k}^\top\bm{X}_{k}+\bm{\Sigma}^{-1})^{-1}\right)
+\end{split}
+\end{equation}
+
+\newpage
+
+\item f.c.d of $\sigma_k^2$ for $j=1,\cdots,m$
+
+\begin{equation}
+\begin{split}
+p(\sigma_{\gamma_j}^2 \mid \text{rest}) 
+&\propto p(\bm{y} \mid \bm{X}, \bm{\gamma}, \bm{\zeta}, \bm{\sigma}^2)
+\, p(\bm{\sigma}^2 \mid \xi^2)  \\
+&\propto \prod_{k=1}^{K}\prod_{j=1}^{m} \left(\prod_{i=1}^{n_j} (\sigma_{\gamma_j}^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_{\gamma_j}^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_{\gamma_j})^2 \right\} \right)^{[\gamma_j = k]}\\ 
+&\quad \times \prod_{k=1}^{K} (\sigma_k^2)^{(-\nu_0/2)} 
+\exp\left\{ -\frac{\nu_0 \xi^2}{2\sigma_k^2} \right\} \\
+\text{If } \gamma_j = k,\quad 
+p(\sigma_k^2 \mid \text{rest}) 
+&\propto \prod_{\left\lbrace j : \gamma_j = k\right\rbrace} \prod_{i=1}^{n_j} (\sigma_k^2)^{-1/2} 
+\exp\left\{ -\frac{1}{2\sigma_k^2} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_k)^2 \right\} \\
+&\quad \times (\sigma_k^2)^{-(\nu_0 / 2 + 1)} 
+\exp\left\{ -\frac{\nu_0 \xi^2}{2\sigma_k^2} \right\} \\
+&\propto  (\sigma_k^2)^{-\sum_{\left\lbrace j : \gamma_j = k\right\rbrace}n_j/2} 
+\exp\left\{ -\frac{1}{2\sigma_k^2} 
+\sum_{\left\lbrace j : \gamma_j = k\right\rbrace}\sum_{i=1}^{n_j} (y_{ij} - \bm{x}_{ij}^\top \bm{\beta}_k)^2 \right\}\\
+&\quad \times (\sigma_k^2)^{-(\nu_0 / 2 + 1)} 
+\exp\left\{ -\frac{\nu_0 \xi^2}{2\sigma_k^2} \right\}\\
+&\propto (\sigma_k^2)^{-\left( \frac{\nu_0+\sum_{\left\lbrace j : \gamma_j = k\right\rbrace}n_j}{2} + 1 \right)} 
+\times \exp\left\{ -\frac{ \nu_0 \xi^2 +  (\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)^\top(\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k) }{2\sigma_k^2} \right\}\\
+\sigma_k^2 \mid \text{rest} \sim&\mathsf{IG} \left( 
+\frac{\nu_0 + \sum_{\left\lbrace j : \gamma_j = k\right\rbrace}n_j}{2},\ 
+\frac{ \nu_0 \xi^2 + (\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)^\top(\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k) }{2} 
+\right)
+\end{split}
+\end{equation}
+
+\item f.c.d of $\bm{\Sigma}$
+
+\begin{equation}
+\begin{split}
+p(\bm{\Sigma} \mid \text{rest}) 
+&\propto 
+\, p(\bm{\xi} \mid\bm{\beta},\bm{\Sigma}) \, p(\bm{\Sigma})  \\
+&\propto \prod_{\left\lbrace k : n_k > 0\right\rbrace} |\bm{\Sigma}|^{-1/2} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\beta}) \right\} \\
+&\quad \times |\bm{\Sigma}|^{-(n_0 + p + 1)/2} 
+\exp\left\{ -\frac{1}{2} \operatorname{tr}(\bm{S}_0 \bm{\Sigma}^{-1}) \right\} \\
+&\propto |\bm{\Sigma}|^{-(\kappa + n_0 + p + 1)/2} 
+\exp\left\{ 
+-\frac{1}{2} \operatorname{tr} \left( 
+\bm{S}_0 + \sum_{\left\lbrace k : n_k > 0\right\rbrace} (\bm{\beta}_k - \bm{\beta})(\bm{\beta}_k - \bm{\beta})^\top 
+\right) \bm{\Sigma}^{-1} 
+\right\}\\
+\bm{\Sigma} \mid \text{rest} &\sim \mathsf{IW} \left(
+\kappa + n_0,\ 
+\left(\bm{S}_0 + \sum_{\left\lbrace k : n_k > 0\right\rbrace} (\bm{\beta}_k - \bm{\beta})(\bm{\beta}_k - \bm{\beta})^\top
+\right)^{-1}\right)
+\end{split}
+\end{equation}
+
+where $\kappa = \#\left\lbrace k : n_k > 0\right\rbrace$ is the number of non empty clusters.
+
+\newpage
+
+\item f.c.d of $\bm{\beta}$
+
+\begin{equation}
+\begin{split}
+p(\bm{\beta} \mid \text{rest}) 
+&\propto  p(\bm{\xi} \mid\bm{\beta},\bm{\Sigma}) p(\bm{\beta}) \\
+&\propto \prod_{\left\lbrace k : n_k > 0\right\rbrace} 
+\exp\left\{ -\frac{1}{2} (\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\beta}) \right\}
+\times 
+\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\mu}_0)^\top \bm{\Lambda}_0^{-1} (\bm{\beta} - \bm{\mu}_0) \right\} \\
+&\propto \exp\left\{ -\frac{1}{2} \sum_{\left\lbrace k : n_k > 0\right\rbrace}
+(\bm{\beta}_k - \bm{\beta})^\top \bm{\Sigma}^{-1} (\bm{\beta}_k - \bm{\beta}) \right\}
+\times 
+\exp\left\{ -\frac{1}{2} (\bm{\beta} - \bm{\mu}_0)^\top \bm{\Lambda}_0^{-1} (\bm{\beta} - \bm{\mu}_0) \right\} \\
+&\propto \exp\left\{ 
+-\frac{1}{2} \left[
+\kappa \bm{\beta}^\top \bm{\Sigma}^{-1} \bm{\beta}
+- 2 \bm{\beta}^\top \bm{\Sigma}^{-1} \sum_{\left\lbrace k : n_k > 0\right\rbrace} \bm{\beta}_k
+\right]
+\right\} \\
+&\quad \times 
+\exp\left\{ 
+-\frac{1}{2} \left[
+\bm{\beta}^\top \bm{\Lambda}_0^{-1} \bm{\beta}
+- 2 \bm{\beta}^\top \bm{\Lambda}_0^{-1} \bm{\mu}_0
+\right]
+\right\} \\
+&\propto \exp\left\{ 
+-\frac{1}{2} \left[\bm{\beta}^\top 
+\left( \kappa \bm{\Sigma}^{-1} + \bm{\Lambda}_0^{-1} \right) \bm{\beta} 
++ \bm{\beta}^\top 
+\left( \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \bm{\Sigma}^{-1} \sum_{\left\lbrace k : n_k > 0\right\rbrace} \bm{\beta}_k \right)\right]
+\right\}\\
+\bm{\beta} \mid \text{rest} \sim & \mathsf{N_p}\left(\left( \kappa \bm{\Sigma}^{-1} + \bm{\Lambda}_0^{-1} \right)^{-1}\left( \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \bm{\Sigma}^{-1} \sum_{\left\lbrace k : n_k > 0\right\rbrace} \bm{\beta}_k \right), \left( \kappa \bm{\Sigma}^{-1} + \bm{\Lambda}_0^{-1} \right)^{-1}\right)
+\end{split}
+\end{equation}
+
+\item f.c.d of $\xi^2$
+
+\begin{equation}
+\begin{split}
+p(\xi^2 \mid \text{rest}) 
+&\propto p(\bm{\sigma}^2 \mid \xi^2) 
+\, p(\xi^2) \\
+&\propto \prod_{\left\lbrace k : n_k > 0\right\rbrace} (\xi^2)^{\nu_0 / 2} 
+\exp\left\{ -\frac{\nu_0 \xi^2 / 2}{\sigma_k^2} \right\}
+\cdot (\xi^2)^{a_0 - 1} 
+\exp\left\{ -b_0 \xi^2 \right\} \\[6pt]
+&\propto (\xi^2)^{\kappa \nu_0 / 2 + a_0 - 1} 
+\exp\left\{ -\xi^2 \left( \frac{\nu_0}{2} \sum_{\left\lbrace k : n_k > 0\right\rbrace} \sigma_k^{-2} + b_0 \right) \right\}\\
+\xi^2 \mid \text{rest} &\sim \mathsf{G} \left(
+\frac{\kappa \nu_0}{2} + a_0,\ 
+\frac{\nu_0}{2} \sum_{\left\lbrace k : n_k > 0\right\rbrace} \sigma_k^{-2} + b_0
+\right)
+\end{split}
+\end{equation}
+
+\end{itemize}
+
+\chapter{CAVI Details}
+\label{Appendix_C}
+
+This section presents the explicit variational formulation of linear regression models considered in this work, using the CAVI results provided in \ref{MVFB_opt} and \ref{NMVFB_opt}. These results assume the mean field factorization (\ref{MFA}) to obtain the optimal variational factor that approximates the true posterior distribution for each unknown parameter.
+
+\section{Linear Regression Model (LRM)}
+
+\begin{itemize}
+
+\item Log Joint Distribution, with $\bm{\Theta}=(\bm{\beta},\sigma^2)$
+
+\begin{equation}
+\begin{split}
+\log p(\bm{\Theta},\bm{y}, \bm{X})
+&= 
+\log p(\bm{y} \mid \bm{X}, \bm{\beta}, \sigma^2) +\,
+\log  p(\bm{\beta}) +\,
+\log p(\sigma^2 ) \\
+&=-\frac{n}{2}\log(2\pi) - \frac{n}{2}\log\sigma^{2}
+- \frac{1}{2\sigma^{2}}
+(\bm y-\bm X\bm\beta)^{\top}
+(\bm y-\bm X\bm\beta)\\
+&\quad - \frac{p}{2}\log(2\pi) + \frac{1}{2}\log|\bm\Sigma_{0}|
+- \frac{1}{2}
+(\bm\beta-\bm\beta_{0})^{\top}
+\bm\Sigma_{0}^{-1}(\bm\beta-\bm\beta_{0})\\
+&\quad + \frac{\nu_{0}}{2}\log \left(\frac{\nu_0\sigma_{0}^2}{2}\right) - \log\Gamma\left(\frac{\nu_{0}}{2}\right)
+- \left(\frac{\nu_{0}}{2}+1\right)\log\sigma^{2}
+- \frac{\nu_0\sigma_{0}^2}{2\sigma^{2}}
+\end{split}
+\end{equation}
+
+\item Variational Distribution
+
+\begin{equation}
+q\left(\bm{\Theta}\right)=q(\bm{\beta})q(\sigma^2)
+\end{equation}
+
+\item Factor $q(\bm{\beta})$
+
+\begin{equation}
+\begin{split}
+\log q(\bm{\beta})
+&\propto\mathsf{E}_{-\bm{\beta}}\left[\log p(\bm{\Theta},\bm{y}, \bm{X})\right]\\
+&\propto\mathsf{E}_{-\bm{\beta}}\left[-\frac{1}{2\sigma^2}  \left((\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta})\right) -\frac{1}{2}(\bm{\beta} - \bm{\beta}_0)^{\top}
+\bm{\Sigma}_0^{-1} (\bm{\beta} - \bm{\beta}_0)\right]\\
+&\propto \mathsf{E}_{-\bm{\beta}}\left[-\frac{1}{2} \left( \bm{\beta}^\top \left( \frac{1}{\sigma^2} \bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right) \bm{\beta} - 2 \bm{\beta}^\top \left( \frac{1}{\sigma^2} \bm{X}^\top \bm{y} + \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right) \right) \right] \\
+&\propto -\frac{1}{2} \left( \bm{\beta}^\top \left(\mathsf{E}_{\sigma^2}\left[ \frac{1}{\sigma^2} \right]\bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right) \bm{\beta} - 2 \bm{\beta}^\top \left(\mathsf{E}_{\sigma^2}\left[ \frac{1}{\sigma^2}\right] \bm{X}^\top \bm{y} + \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right) \right)\\
+q(\bm{\beta})
+&= \mathsf{N_p}\left(\bm{\mu}_{\bm{\beta}},\bm{\Sigma}_{\bm{\beta}}\right)
+\end{split}
+\end{equation}
+
+where
+
+\begin{equation}
+\bm{\mu}_{\bm{\beta}}=\left(\mathsf{E}_{\sigma^2}\left[ \frac{1}{\sigma^2} \right]\bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right)^{-1}\left(\mathsf{E}_{\sigma^2}\left[ \frac{1}{\sigma^2}\right] \bm{X}^\top \bm{y} + \bm{\Sigma}_0^{-1} \bm{\beta}_0 \right)
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{\Sigma}_{\bm{\beta}} = \left(\mathsf{E}_{\sigma^2}\left[ \frac{1}{\sigma^2} \right]\bm{X}^\top \bm{X} + \bm{\Sigma}_0^{-1} \right)^{-1}
+\end{equation}
+
+\item Factor $q(\sigma^2)$
+
+\begin{equation}
+\begin{split}
+\log q(\sigma^2)
+&\propto\mathsf{E}_{-\sigma^2}\left[\log p(\bm{\Theta},\bm{y}, \bm{X})\right]\\
+&\propto\mathsf{E}_{-\sigma^2}\left[-\left( \frac{\nu_0 + n}{2} + 1 \right)\log (\sigma^2) -\frac{1}{2\sigma^2} \left( (\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta})+\nu_0 \sigma_0^2\right)\right]\\
+&\propto -\left( \frac{\nu_0 + n}{2} + 1 \right)\log (\sigma^2) - \frac{\mathsf{E}_{\bm{\beta}}\left[(\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta})  \right] + \nu_0 \sigma_0^2 }{2\sigma^2}\\
+q(\sigma^2)
+&= \mathsf{IG}\left( a, b \right)
+\end{split}
+\end{equation}
+
+where
+
+\begin{equation}
+a = \frac{n + \nu_0}{2}
+\end{equation}
+
+and
+
+\begin{equation}
+b = \frac{\nu_0 \sigma_0^2 + \mathsf{E}_{\bm{\beta}}\left[(\bm{y} - \bm{X} \bm{\beta})^{\top}
+(\bm{y} - \bm{X} \bm{\beta})  \right]}{2}
+\end{equation}
+
+\item ELBO
+
+\begin{equation}
+\begin{split}
+\mathcal{L}(q(\bm{\Theta})) 
+&=\mathsf{E}_{\bm{\Theta}}\left[\log p(\bm{\Theta},\bm{y}, \bm{X})\right]-\mathsf{E}_{\bm{\beta}}\left[\log q(\bm{\beta})\right]-\mathsf{E}_{\sigma^2}\left[\log q(\sigma^2)\right]\\
+&=-\frac{n}{2}\log(2\pi) - \frac{n}{2}\mathsf{E}_{\sigma^2}\left[\log\sigma^{2}\right]
+- \frac{1}{2}\mathsf{E}_{\sigma^2}\left[\frac{1}{\sigma^{2}}\right]\mathsf{E}_{\bm{\beta}}\left[
+(\bm y-\bm X\bm\beta)^{\top}
+(\bm y-\bm X\bm\beta)\right]\\
+&\quad - \frac{p}{2}\log(2\pi) + \frac{1}{2}\log|\bm\Sigma_{0}|
+- \frac{1}{2}
+\mathsf{E}_{\bm{\beta}}\left[(\bm\beta-\bm\beta_{0})^{\top}
+\bm\Sigma_{0}^{-1}(\bm\beta-\bm\beta_{0})\right]\\
+&\quad + \frac{\nu_{0}}{2}\log \left(\frac{\nu_0\sigma_{0}^2}{2}\right) - \log\Gamma\left(\frac{\nu_{0}}{2}\right)
+- \left(\frac{\nu_{0}}{2}+1\right)\mathsf{E}_{\sigma^2}\left[\log\sigma^{2}\right]
+- \frac{\nu_0\sigma_{0}^2}{2}\mathsf{E}_{\sigma^2}\left[\frac{1}{\sigma^{2}}\right]\\
+&\quad+\frac{d}{2}\log(2\pi e)+\frac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|+\log b+\log\Gamma(a)-(a+1)\psi(a)+a
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\mathcal{L}(q(\bm{\Theta})) 
+&=-\frac{n}{2}\log(2\pi) - \frac{n}{2}\left(\log b -\psi(a)\right)
+- \frac{1}{2}\left(\frac{a}{b}\right)\left((\bm{y} - \bm{X}  \bm\mu_{\bm{\beta}})^{\top}
+(\bm{y} - \bm{X} \bm\mu_{\bm{\beta}}) + \operatorname{tr}\left(\bm{X}^{\top}\bm{X}\bm{\Sigma}_{\bm{\beta}}\right)\right)\\
+&\quad - \frac{p}{2}\log(2\pi) + \frac{1}{2}\log|\bm\Sigma_{0}|
+- \frac{1}{2}
+\left((\bm\mu_{\bm\beta}-\bm\beta_{0})^{\top}
+\bm\Sigma_{0}^{-1}(\bm\mu_{\bm\beta}-\bm\beta_{0})+\operatorname{tr}(\bm\Sigma_0^{-1}\bm\Sigma_{\bm{\beta}})\right)\\
+&\quad + \frac{\nu_{0}}{2}\log \left(\frac{\nu_0\sigma_{0}^2}{2}\right) - \log\Gamma\left(\frac{\nu_{0}}{2}\right)
+- \left(\frac{\nu_{0}}{2}+1\right)\left(\log b -\psi(a)\right)
+- \frac{\nu_0\sigma_{0}^2}{2}\left(\frac{a}{b}\right)\\
+&\quad+\frac{d}{2}\log(2\pi e)+\frac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|+\log b+\log\Gamma(a)-(a+1)\psi(a)+a\\
+\end{split}
+\end{equation}
+
+\end{itemize}
+
+\newpage
+
+\section{Hierarchical Linear Regression Model (HLRM)}
+
+\begin{itemize}
+
+\item Log Joint Distribution, with $\bm{\Theta}=(\bm{\zeta},\bm{\sigma^2},\bm{\beta},\bm{\Sigma},\xi^2)$ where $\bm{\zeta}=(\bm{\beta}_1, \ldots, \bm{\beta}_m)$,    $\bm{\beta}_j=(\beta_{1j},\cdots,\beta_{pj})$ and $\bm{\sigma^2}=(\sigma_1^2,\cdots,\sigma_m^2)$
+
+\begin{equation}
+\begin{split}
+\log p(\bm{\Theta},\bm{y}, \bm{X})
+&= \sum_{j=1}^{m} \log p\left(\bm{y}_j \mid \bm{\beta}_j, \sigma_j^2, \mathbf{X}_j \right) + \sum_{j=1}^{m} \log p\left(\bm{\beta}_j \mid \bm{\beta}, \bm{\Sigma}\right) + \log p(\bm{\beta})+\log p\left(\bm{\Sigma}\right) \\
+&\quad + \sum_{j=1}^{m} \log p\left(\sigma^2_j\mid\xi^2\right) + \log p(\xi^2) \\
+&= \sum_{j=1}^{m} \Bigg[
+-\tfrac{n_j}{2}\log(2\pi) - \tfrac{n_j}{2}\log\sigma_j^2  -\tfrac{1}{2\sigma_j^2}
+\big(\bm{y}_j-\mathbf{X}_j\bm{\beta}_j\big)^{\top}
+\big(\bm{y}_j-\mathbf{X}_j\bm{\beta}_j\big)
+\Bigg] \\
+&\quad + \sum_{j=1}^{m} \Bigg[
+-\tfrac{p}{2}\log(2\pi) -\tfrac{1}{2}\log|\bm{\Sigma}| -\tfrac{1}{2}\big(\bm{\beta}_j-\bm{\beta}\big)^{\top}\bm{\Sigma}^{-1}\big(\bm{\beta}_j-\bm{\beta}\big)
+\Bigg] \\
+&\quad + \Bigg[
+-\tfrac{p}{2}\log(2\pi) -\tfrac{1}{2}\log|\bm{\Lambda_0}| -\tfrac{1}{2}\big(\bm{\beta}-\bm{\mu}_0\big)^{\top}\bm{\Lambda}_0^{-1}\big(\bm{\beta}-\bm{\mu}_0\big)
+\Bigg]\\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\mathbf{S}_0| - \tfrac{n_0 p}{2}\log 2 - \log\Gamma_p\left(\tfrac{n_0}{2}\right)  -\tfrac{n_0+p+1}{2}\log|\bm{\Sigma}| -\tfrac{1}{2}\operatorname{tr}\left(\mathbf{S}_0\bm{\Sigma}^{-1}\right)
+\Bigg] \\
+&\quad + \sum_{j=1}^{m} \left[ \frac{\nu_0}{2}\log \frac{\nu_0\xi^2}{2} - \log\Gamma\left(\frac{\nu_0}{2}\right)  -\left(\frac{\nu_0}{2}+1\right)\log\sigma_j^2 - \tfrac{\nu_0\xi^2}{2\sigma_j^2}\right] \\
+&\quad + \left[a_0\log b_0+(a_0-1)\log\xi^2-b_0\xi^2\right]
+\end{split}
+\end{equation}
+
+\item Variational Distribution
+
+\begin{equation}
+\begin{split}
+q(\bm{\Theta})&=\prod_{j=1}^{m}q(\bm{\beta}_j)q(\bm{\beta})q(\bm{\Sigma})\prod_{j=1}^{m}q(\sigma_j^2)q(\xi^2)\\
+&= \left(\prod_{j=1}^{m}q(\bm{\beta}_j)q(\sigma_j^2)\right)\left(q(\bm{\beta})q(\bm{\Sigma})q(\xi^2)\right)
+\end{split}
+\end{equation}
+
+\newpage
+
+\item Factor $q(\bm{\beta_j})$
+
+The natural parameter of $p(\bm{\beta}_j \mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\bm{\beta}_j \mid \text{rest})=\left(\left[ ({\sigma_j}^{-2}) \bm{X}_{j}^\top \bm{y}_{j} + \bm{\Sigma}^{-1} \bm{\beta} \right],-\frac{1}{2}\left[ (\sigma_j^{-2}) \bm{X}_{j}^\top \bm{X}_{j}  + \bm{\Sigma}^{-1} \right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\bm{\beta}_j}\left[\bm{\eta}(\bm{\beta}_j \mid \text{rest})\right]=\left(\left[\mathsf{E}_{\sigma^2_j}\left[{\sigma_j}^{-2}\right] \bm{X}_{j}^\top \bm{y}_{j} + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}}\left[\bm{\beta} \right] \right],-\frac{1}{2}\left[ \mathsf{E}_{\sigma^2_j}\left[{\sigma_j}^{-2}\right] \bm{X}_{j}^\top \bm{X}_{j}  + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta}_j)=\mathsf{N_p}(\bm{\mu}_{\bm{\beta}_j},\bm{\Sigma}_{\bm{\beta}_j})$, where:
+
+\begin{equation}
+\bm{\Sigma}_{\bm{\beta}_j} = \left[ \mathsf{E}_{\sigma^2_j}\left[{\sigma_j}^{-2}\right] \bm{X}_{j} ^\top\bm{X}_{j}  + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]^{-1}
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{\mu}_{\bm{\beta}_j}= \left[ \mathsf{E}_{\sigma^2_j}\left[{\sigma_j}^{-2}\right] \bm{X}_{j}^\top \bm{X}_{j}  + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]^{-1}\left[\mathsf{E}_{\sigma^2_j}\left[{\sigma_j}^{-2}\right] \bm{X}_{j}^\top \bm{y}_{j} + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}}\left[\bm{\beta} \right] \right]
+\end{equation}
+
+\item Factor $q(\bm{\beta})$
+
+The natural parameter of $p(\bm{\beta}\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\bm{\beta}\mid \text{rest})=\left(\left[ \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \bm{\Sigma}^{-1} \sum_{j=1}^{m} \bm{\beta}_j \right],-\frac{1}{2}\left( \bm{\Lambda}_0^{-1} + \sum_{j=1}^{m}\bm{\Sigma}^{-1} \right)\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\bm{\beta}}\left[\bm{\eta}(\bm{\beta}\mid \text{rest})\right]=\left( \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \sum_{j=1}^{m}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}_j}\left[\bm{\beta}_j \right],-\frac{1}{2}\left[\bm{\Lambda}_0^{-1}   + \sum_{j=1}^{m}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta})=\mathsf{N_p}(\bm{\mu}_{\bm{\beta}},\bm{\Sigma}_{\bm{\beta}})$, where:
+
+\begin{equation}
+\bm{\Sigma}_{\bm{\beta}} = \left[\bm{\Lambda}_0^{-1}   + \sum_{j=1}^{m}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right] ^{-1}
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{\mu}_{\bm{\beta}}= \left[\bm{\Lambda}_0^{-1}   + \sum_{j=1}^{m}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]^{-1}\left[\bm{\Lambda}_0^{-1} \bm{\mu}_0 +\sum_{j=1}^{m}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}_j}\left[\bm{\beta}_j \right]\right]
+\end{equation}
+
+\item Factor $q(\bm{\Sigma})$
+
+The natural parameter of $p(\bm{\Sigma}\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\bm{\Sigma}\mid \text{rest})=\left(-\frac{1}{2}\left[ \bm{S}_0 + \sum_{j=1}^{m} (\bm{\beta}_j - \bm{\beta})(\bm{\beta}_j - \bm{\beta})^\top\right],-\left[\frac{n_0 + m + p + 1}{2}\right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\bm{\Sigma}}\left[\bm{\eta}(\bm{\Sigma}\mid \text{rest})\right]=\left(-\frac{1}{2}\left[ \bm{S}_0 + \sum_{j=1}^{m} \mathsf{E}_{\bm{\beta}_j,\bm{\beta}}\left[\left(\bm{\beta}_j - \bm{\beta})(\bm{\beta}_j - \bm{\beta}\right)^\top\right]\right],-\left[\frac{n_0 + m + p + 1}{2}\right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta})=\mathsf{IW}(\nu_{\bm{\Sigma}},\bm{S}_{\bm{\Sigma}}^{-1})$, where:
+
+\begin{equation}
+\nu_{\bm{\Sigma}} = n_0+m
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{S}_{\bm{\Sigma}}= \left[ \bm{S}_0 + \sum_{j=1}^{m} \mathsf{E}_{\bm{\beta}_j,\bm{\beta}}\left[\left(\bm{\beta}_j - \bm{\beta})(\bm{\beta}_j - \bm{\beta}\right)^\top\right]\right]
+\end{equation}
+
+\item Factor $q(\sigma_j^2)$
+
+The natural parameter of $p(\sigma_j^2\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\sigma_j^2\mid \text{rest})=\left(-\left[\frac{n_j + \nu_0}{2}+1\right],-\left[ \frac{ \nu_0 \xi^2 +  (\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)}{2}\right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\sigma_j^2}\left[\bm{\eta}(\sigma_j^2 \mid \text{rest})\right]=\left(-\left[\frac{n_j + \nu_0}{2}+1\right],-\left[ \frac{ \nu_0 \mathsf{E}_{\xi^2}\left[\xi^2\right] +  \mathsf{E}_{\bm{\beta}_j}\left[\left(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j\right)\right]}{2}\right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\sigma_j^2)=\mathsf{IG}(a_{\sigma_j^2},b_{\sigma_j^2})$, where:
+
+\begin{equation}
+a_{\sigma_j^2}= \frac{n_j + \nu_0}{2}
+\end{equation}
+
+and
+
+\begin{equation}
+b_{\sigma_j^2}= \frac{ \nu_0 \mathsf{E}_{\xi^2}\left[\xi^2\right] +  \mathsf{E}_{\bm{\beta}_j}\left[\left(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_j\right)\right]}{2}
+\end{equation}
+
+\item Factor $q(\xi^2)$
+
+The natural parameter of $p(\xi^2\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\xi^2\mid \text{rest})=\left(\left[ a_0 +\frac{m \nu_0}{2} -1\right],-\left[ b_0 + \frac{\nu_0}{2} \sum_{j=1}^{m} \sigma_j^{-2}\right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\xi^2}\left[\bm{\eta}(\xi^2\mid \text{rest})\right]=\left(\left[ a_0 +\frac{m \nu_0}{2} -1\right],-\left[ b_0 + \frac{\nu_0}{2} \sum_{j=1}^{m} \mathsf{E}_{\sigma^2_j}\left[\sigma_j^{-2}\right]\right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\xi^2)=\mathsf{G}(a_{\xi^2},b_{\sigma_j^2})$, where:
+
+\begin{equation}
+a_{\xi^2}=  a_0 +\frac{m \nu_0}{2}
+\end{equation}
+
+and
+
+\begin{equation}
+b_{\xi^2}= b_0 + \frac{\nu_0}{2} \sum_{j=1}^{m} \mathsf{E}_{\sigma^2_j}\left[\sigma_j^{-2}\right]
+\end{equation}
+
+\item ELBO
+\begin{equation}
+\begin{split}
+\mathcal{L}\left(q(\bm{\Theta})\right)
+&= \mathsf{E}_{\bm{\Theta}}\!\left[\log p(\bm{\Theta},\bm{y},\bm{X})\right]
+- \sum_{j=1}^{m}\mathsf{E}_{\bm{\beta}_j}\left[\log q(\bm{\beta}_j)\right]
+- \mathsf{E}_{\bm{\beta}}\left[\log q(\bm{\beta})\right] \\
+&\quad - \mathsf{E}_{\bm{\Sigma}}\left[\log q(\bm{\Sigma})\right]
+- \sum_{j=1}^{m}\mathsf{E}_{\sigma_j^2}\left[\log q(\sigma_j^2)\right]
+- \mathsf{E}_{\xi^2}\left[\log q(\xi^2)\right] \\
+&= \sum_{j=1}^{m}\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)
+-\tfrac{n_j}{2}\mathsf{E}_{\sigma_j^2}\!\left[\log\sigma_j^2\right]
+-\tfrac{1}{2}\mathsf{E}_{\sigma_j^2}\!\left[\tfrac{1}{\sigma_j^2}\right]
+\,\mathsf{E}_{\bm{\beta}_j}\!\!\left[(\bm{y}_j-\mathbf{X}_j\bm{\beta}_j)^{\top}(\bm{y}_j-\mathbf{X}_j\bm{\beta}_j)\right]
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\mathsf{E}_{\bm{\Sigma}}\!\left[\log|\bm{\Sigma}|\right]
+-\tfrac{1}{2}\mathsf{E}_{\bm{\Sigma},\bm{\beta}_j,\bm{\beta}}\!\!\left[(\bm{\beta}_j-\bm{\beta})^{\top}\bm{\Sigma}^{-1}(\bm{\beta}_j-\bm{\beta})\right]
+\Bigg] \\
+&\quad + \Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\log|\bm{\Lambda}_0|
+-\tfrac{1}{2}\mathsf{E}_{\bm{\beta}}\!\!\left[(\bm{\beta}-\bm{\mu}_0)^{\top}\bm{\Lambda}_0^{-1}(\bm{\beta}-\bm{\mu}_0)\right]
+\Bigg] \\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\mathbf{S}_0|-\tfrac{n_0p}{2}\log 2-\log\Gamma_p\!\!\left(\tfrac{n_0}{2}\right)
+-\tfrac{n_0+p+1}{2}\mathsf{E}_{\bm{\Sigma}}\!\left[\log|\bm{\Sigma}|\right]
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\mathbf{S}_0\,\mathsf{E}_{\bm{\Sigma}}\!\!\left[\bm{\Sigma}^{-1}\right]\right)
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\Bigg[
+\tfrac{\nu_0}{2}\log\!\left(\tfrac{\nu_0}{2}\right)+\tfrac{\nu_0}{2}\mathsf{E}_{\xi^2}\!\!\left[\log\xi^2\right]-\log\Gamma\!\left(\tfrac{\nu_0}{2}\right)
+-\left(\tfrac{\nu_0}{2}+1\right)\mathsf{E}_{\sigma_j^2}\!\!\left[\log\sigma_j^2\right]
+-\tfrac{\nu_0}{2}\mathsf{E}_{\xi^2}\!\!\left[\xi^2\right]\mathsf{E}_{\sigma_j^2}\!\!\left[\tfrac{1}{\sigma_j^2}\right]
+\Bigg] \\
+&\quad + \Bigg[
+a_0\log b_0-\log\Gamma(a_0)
++(a_0-1)\mathsf{E}_{\xi^2}\!\!\left[\log\xi^2\right]
+-b_0\mathsf{E}_{\xi^2}\!\!\left[\xi^2\right]
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\Bigg[
+\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}_j}|
+\Bigg] + \left[\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|\right] +\left[\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{S}_{\bm{\Sigma}}|\right]\\
+&\quad +\sum_{j=1}^{m}\Bigg[\log b_{\sigma_j^2}+\log\Gamma(a_{\sigma_j^2})-(a_{\sigma_j^2}+1)\psi(a_{\sigma_j^2})+a_{\sigma_j^2}\Bigg] \\
+&\quad \left[-\log b_{\xi^2}+\log\Gamma(a_{\xi^2})-(a_{\xi^2}-1)\psi(a_{\xi^2})+a_{\xi^2}\right]
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\mathcal{L}\left(q(\bm{\Theta})\right)
+&= \sum_{j=1}^{m}\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)
+-\tfrac{n_j}{2}\left(\log b_{\sigma_j^2}-\psi(a_{\sigma_j^2})\right) \\
+&\qquad
+-\tfrac{1}{2}\left(\tfrac{a_{\sigma_j^2}}{b_{\sigma_j^2}}\right)
+\Big[
+(\bm{y}_j-\mathbf{X}_j\bm{\mu}_{\bm{\beta}_j})^\top(\bm{y}_j-\mathbf{X}_j\bm{\mu}_{\bm{\beta}_j})
++\operatorname{tr}\!\left(\mathbf{X}_j^\top\mathbf{X}_j\,\bm{\Sigma}_{\bm{\beta}_j}\right)
+\Big]
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\Bigg(
+-\sum_{i=1}^{p}\psi\!\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)
+-p\log 2 + \log|\bm{S}_{\bm{\Sigma}}^{-1}|
+\Bigg) \\
+&\qquad
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\bm{S}_{\bm{\Sigma}}^{-1}\!\!\left[
+(\bm{\mu}_{\bm{\beta}_j}-\bm{\mu}_{\bm{\beta}})
+(\bm{\mu}_{\bm{\beta}_j}-\bm{\mu}_{\bm{\beta}})^\top
++\bm{\Sigma}_{\bm{\beta}_j}+\bm{\Sigma}_{\bm{\beta}}
+\right]\right)
+\Bigg] \\
+&\quad + \Bigg[
+-\tfrac{p}{2}\log(2\pi)-\tfrac{1}{2}\log|\bm{\Lambda}_0|
+-\tfrac{1}{2}\left[
+(\bm{\mu}_{\bm{\beta}}-\bm{\mu}_0)^\top\bm{\Lambda}_0^{-1}(\bm{\mu}_{\bm{\beta}}-\bm{\mu}_0)
++\operatorname{tr}\!\left(\bm{\Lambda}_0^{-1}\bm{\Sigma}_{\bm{\beta}}\right)
+\right]
+\Bigg] \\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\bm{S}_0|-\tfrac{n_0 p}{2}\log 2-\log\Gamma_p\left(\tfrac{n_0}{2}\right)
+-\tfrac{n_0+p+1}{2}\Bigg(
+-\sum_{i=1}^{p}\psi\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\bm{S}_{\bm{\Sigma}}^{-1}|
+\Bigg) \\
+&\qquad
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\bm{S}_0\,\bm{S}_{\bm{\Sigma}}^{-1}\right)
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\Bigg[
+\tfrac{\nu_0}{2}\log\left(\tfrac{\nu_0}{2}\right)
++\tfrac{\nu_0}{2}\left(\psi(a_{\xi^2})-\log b_{\xi^2}\right)
+-\log\Gamma\!\left(\tfrac{\nu_0}{2}\right) 
+-\left(\tfrac{\nu_0}{2}+1\right)\left(\log b_{\sigma_j^2}-\psi(a_{\sigma_j^2})\right)\\
+&\quad -\tfrac{\nu_0}{2}\left(\tfrac{a_{\xi^2}}{b_{\xi^2}}\right)\left(\tfrac{a_{\sigma_j^2}}{b_{\sigma_j^2}}\right)
+\Bigg] \\
+&\quad + \Bigg[
+a_0\log b_0-\log\Gamma(a_0)
++(a_0-1)\left(\psi(a_{\xi^2})-\log b_{\xi^2}\right)
+-b_0\left(\tfrac{a_{\xi^2}}{b_{\xi^2}}\right)
+\Bigg] \\
+&\quad +  \sum_{j=1}^{m}\Bigg[
+\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}_j}|
+\Bigg]  +\Bigg[
+\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|
+\Bigg]  + \Bigg[
+\tfrac{p}{2}\log(2\pi e)+\tfrac{1}{2}\log|\bm{\Lambda}_{0}|
+\Bigg] \\
+&\quad +\Bigg[-\tfrac{\nu_{\bm{\Sigma}}}{2}\log|\mathbf{S}_{\bm{\Sigma}}|
++ \tfrac{\nu_{\bm{\Sigma}} p}{2}\log 2
++ \log\Gamma_p\left(\tfrac{\nu_{\bm{\Sigma}}}{2}\right) + \tfrac{\nu_{\bm{\Sigma}}+p+1}{2}\left(
+-\sum_{i=1}^{p}\psi\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\mathbf{S}_{\bm{\Sigma}}^{-1}|
+\right) \\ 
+&\quad + \tfrac{\nu_{\bm{\Sigma}}}{2}\operatorname{tr}\left(\mathbf{S}_{\bm{\Sigma}}^2\right)\Bigg]\\
+&\quad + \sum_{j=1}^{m}\Bigg[
+\log b_{\sigma_j^2}+\log\Gamma(a_{\sigma_j^2})-(a_{\sigma_j^2}+1)\psi(a_{\sigma_j^2})+a_{\sigma_j^2}
+\Bigg] \\
+&\quad + \Bigg[
+-\log b_{\xi^2}+\log\Gamma(a_{\xi^2})-(a_{\xi^2}-1)\psi(a_{\xi^2})+a_{\xi^2}
+\Bigg].
+\end{split}
+\end{equation}
+
+\end{itemize}
+
+\newpage
+
+\section{Clustering Hierarchical Linear Regression Model (CHLRM)}
+
+\begin{itemize}
+
+\item Log Joint Distribution, with $\bm{\Theta}=\left(\gamma, \bm{\omega}, \bm{\zeta}, \bm{\sigma}^2, \bm{\beta}, \bm{\Sigma}, \xi^2\right)$ where $\bm{\gamma}=\left(\gamma_1, \ldots, \gamma_m\right), \bm{\omega}=\left(\omega_1, \ldots, \omega_K\right), \bm{\zeta}=\left(\bm{\beta}_1, \ldots, \bm{\beta}_K\right), \bm{\sigma}^{\mathbf{2}}=\left(\sigma_1^2, \ldots, \sigma_K^2\right)$
+
+\begin{equation}
+\begin{split}
+\log p(\bm{\Theta} , \bm{y},\bm{X})
+&= \log p(\bm{y}\mid\bm{X},\bm{\gamma},\bm{\zeta},\bm{\sigma}^2) + \sum_{j=1}^{m}\log p(\gamma_j\mid\bm{\omega}) + \log p(\bm{\omega}) \\
+&\quad + \sum_{k=1}^{K}\log p(\bm{\beta}_k\mid\bm{\beta},\bm{\Sigma}) + \log p(\bm{\beta}) + \log p(\bm{\Sigma}) + \sum_{k=1}^{K}\log p(\bm{\sigma}_k^2 \mid \xi^2) + \log p(\xi^2) \\
+&=\sum_{j=1}^{m}\sum_{k=1}^{K}\Bigg[[\gamma_j=k]\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)-\tfrac{n_j}{2}\log\sigma^2_{k}
+-\tfrac{1}{2\sigma^2_{j}}\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)^\top\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)
+\Bigg]\Bigg] \\
+&\quad + \sum_{j=1}^{m}\sum_{k=1}^{K}\left[[\gamma_j=k]\log\omega_k\right] 
++ \left[\log \frac{\Gamma\left( \sum_{k=1}^{K} \alpha_{0k} \right)}{\prod_{k=1}^{K} \Gamma(\alpha_{0k})} + \sum_{k=1}^{K}\left[(\alpha_{0k}-1)\log\omega_k\right] \right] \\
+&\quad + \sum_{k=1}^{K}\Bigg[
+-\tfrac{p}{2}\log(2\pi)-\tfrac{1}{2}\log|\bm{\Sigma}|
+-\tfrac{1}{2}(\bm{\beta}_k-\bm{\beta})^{\top}\bm{\Sigma}^{-1}(\bm{\beta}_k-\bm{\beta})
+\Bigg] \\
+&\quad +\Bigg[
+-\tfrac{p}{2}\log(2\pi)-\tfrac{1}{2}\log|\bm{\Lambda}_0|
+-\tfrac{1}{2}(\bm{\beta}-\bm{\mu}_0)^{\top}\bm{\Lambda}_0^{-1}(\bm{\beta}-\bm{\mu}_0)
+\Bigg] \\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\bm{S}_0|-\tfrac{n_0p}{2}\log 2-\log\Gamma_p\!\!\left(\tfrac{n_0}{2}\right)
+-\tfrac{n_0+p+1}{2}\log|\bm{\Sigma}|
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\bm{S}_0\bm{\Sigma}^{-1}\right)
+\Bigg] \\
+&\quad + \sum_{k=1}^{K}\Bigg[
+-\left(\tfrac{\nu_0}{2}+1\right)\log\sigma_k^2
+-\tfrac{\nu_0\xi^2}{2\sigma_k^2}
++\tfrac{\nu_0}{2}\log\!\left(\tfrac{\nu_0\xi^2}{2}\right)
+-\log\Gamma\left(\tfrac{\nu_0}{2}\right)
+\Bigg] \\
+&\quad + \Bigg[
+(a_0-1)\log\xi^2 - b_0\xi^2 + a_0\log b_0 - \log\Gamma(a_0)
+\Bigg].
+\end{split}
+\end{equation}
+
+\item Variational Distribution 
+
+\begin{equation}
+\begin{split}
+q(\bm{\Theta})&=\prod_{k=1}^{K}q(\bm{\beta}_k)q(\bm{\beta})q(\bm{\Sigma})\prod_{k=1}^{K}q(\sigma_k^2)q(\xi^2)\prod_{j=1}^{m}q(\gamma_j)q(\bm{\omega})\\
+&= \left(q(\bm{\omega})q(\bm{\beta})q(\bm{\Sigma})q(\xi^2)\prod_{k=1}^{K}q(\bm{\beta}_k)q(\sigma_k^2)\right)\left(\prod_{j=1}^{m}q(\gamma_j)\right)
+\end{split}
+\end{equation}
+
+to determine the optimal factors, we make use of the results in \ref{NMVFB_opt}, \ref{MVFB_opt} and the f.c.d in \ref{Appendix_B} to derive the variational parameters  and its respective distributions for each factor . It is important to note that these variational parameters can be decomposed into local parameters, which are specific to each group $j$, and global parameters, which correspond to the overall latent variables shared across clusters and for each cluster.
+
+\newpage
+
+\item Update Factor for $\gamma_j$
+
+\begin{equation}
+\begin{split}
+\log q(\bm{\gamma})
+&\propto\mathsf{E}_{-\bm{\gamma}}\left[\log p(\bm{\Theta},\bm{y}, \bm{X})\right]\\
+&\propto\mathsf{E}_{-\bm{\gamma}}\Bigg[\sum_{j=1}^{m}\sum_{k=1}^{K} [\gamma_j=k]\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)-\tfrac{n_j}{2}\log\sigma^2_{k}
+-\tfrac{1}{2\sigma^2_{k}}\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)^\top\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)
+\Bigg] \\
+&\quad + \sum_{j=1}^{m}\sum_{k=1}^{K}\left[[\gamma_j=k]\log\omega_k\right]\Bigg]\\
+&\propto\sum_{j=1}^{m}\sum_{k=1}^{K}[\gamma_j=k]\mathsf{E}_{-\bm{\gamma}_j}\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)-\tfrac{n_j}{2}\log\sigma^2_{k}
+-\tfrac{1}{2\sigma^2_{k}}\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)^\top\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)+\log\omega_k
+\Bigg] \\
+&\propto\sum_{j=1}^{m}\sum_{k=1}^{K}[\gamma_j=k]\Bigg[
+-\tfrac{n_j}{2}\mathsf{E}_{\sigma^2_k}\left[\log\sigma^2_{k}\right]
+-\tfrac{1}{2}\mathsf{E}_{\sigma^2_k}\left[\frac{1}{\sigma^2_{k}}\right]\mathsf{E}_{\bm{\beta}_k}\left[\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)^\top\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)\right]+\mathsf{E}_{\omega}\left[\log\omega_k\right]
+\Bigg] \\
+&\propto\sum_{j=1}^{m}\sum_{k=1}^{K}[\gamma_j=k]\log\rho_{jk} \\
+&\propto\sum_{j=1}^{m}\log q(\gamma_j)
+\end{split}
+\end{equation}
+
+then:
+
+\begin{equation}
+\begin{split}
+\log q(\gamma_j)&=\sum_{k=1}^{K}[\gamma_j=k]\log\rho_{jk}\\
+q(\gamma_j)&=\mathsf{Cat}(\lbrace{\rho_{j1},\dots,\rho_{jK}\rbrace})
+\end{split}
+\end{equation}
+
+with:
+
+\begin{equation}
+\log \rho_{jk} \propto -\tfrac{n_j}{2}\mathsf{E}_{\sigma^2_k}\left[\log\sigma^2_{k}\right]
+-\tfrac{1}{2}\mathsf{E}_{\sigma^2_k}\left[\frac{1}{\sigma^2_{k}}\right]\mathsf{E}_{\bm{\beta}_k}\left[\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)^\top\left(\bm{y}_{j}-\bm{X}_{j}\bm{\beta}_{k}\right)\right]+\mathsf{E}_{\omega}\left[\log\omega_k\right]
+\end{equation}
+
+\item Update Factor for $\omega$
+
+\begin{equation}
+\begin{split}
+\log q(\omega) &\propto \mathsf{E}_{-\omega}\Bigg[\sum_{j=1}^{m}\sum_{k=1}^{K}\left[[\gamma_j=k]\log\omega_k\right] 
++ \sum_{k=1}^{K}\left[(\alpha_{0k}-1)\log\omega_k\right] \Bigg]\\
+&\propto \sum_{k=1}^{K}\left(\alpha_{0k}+\sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]-1\right)\log\omega_k\\
+q(\omega)&=\mathsf{Dir}\left(\left\lbrace \alpha_{01}+\sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=1]\right],\dots,\alpha_{0k}+\sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]\right\rbrace\right)
+\end{split}
+\end{equation}
+
+\newpage
+
+\item Update Factor for $\bm{\beta}_k$
+
+The natural parameter of $p(\bm{\beta}_k \mid \text{rest}) $ is:
+\begin{equation}
+\bm{\eta}(\bm{\beta}_k \mid \text{rest})=\left(\left[ ({\sigma_k}^{-2}) \bm{X}_{k}^\top \bm{y}_{k} + \bm{\Sigma}^{-1} \bm{\beta} \right],-\frac{1}{2}\left[ (\sigma_k^{-2}) \bm{X}_{k}^\top \bm{X}_{k}  + \bm{\Sigma}^{-1} \right]\right)^\top
+\end{equation}
+
+note that $\bm{X}_{k}^\top \bm{X}_{k}=\sum_{j=1}^{m}[\gamma_j=k]\bm{X}_{j}^\top \bm{X}_{j}$ and $\bm{X}_{k}^\top \bm{y}_{k}=\sum_{j=1}^{m}[\gamma_j=k]\bm{X}_{j}^\top \bm{y}_{j}$, then the natural parameter of factor is:
+
+\begin{equation}
+\begin{split}
+\mathsf{E}_{-\bm{\beta}_k}\left[\bm{\eta}(\bm{\beta}_k \mid \text{rest})\right]=&\Bigg(\mathsf{E}_{\sigma^2_k}\left[{\sigma_k}^{-2}\right] \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k\right]]\bm{X}_{j}^\top \bm{y}_{j} + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}}\left[\bm{\beta} \right],\\
+&\quad -\frac{1}{2}\left[\mathsf{E}_{\sigma^2_k}\left[{\sigma_k}^{-2}\right] \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k\right]]\bm{X}_{j}^\top \bm{X}_{j}  + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]\Bigg)^\top
+\end{split}
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta}_k)=\mathsf{N_p}(\bm{\mu}_{\bm{\beta}_k},\bm{\Sigma}_{\bm{\beta}_k})$, where:
+
+\begin{equation}
+\bm{\Sigma}_{\bm{\beta}_k}^{-1} = \mathsf{E}_{\sigma^2_k}\left[{\sigma_k}^{-2}\right] \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k\right]]\bm{X}_{j}^\top \bm{X}_{j}  + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] 
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{\mu}_{\bm{\beta}_k}= \bm{\Sigma}_{\bm{\beta}_k}\left[\mathsf{E}_{\sigma^2_k}\left[{\sigma_k}^{-2}\right] \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k\right]]\bm{X}_{j}^\top \bm{y}_{j} + \mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}}\left[\bm{\beta} \right] \right]
+\end{equation}
+
+\item Update Factor for $\bm{\beta}$
+
+The natural parameter of $p(\bm{\beta}\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\bm{\beta}\mid \text{rest})=\left(\left[ \bm{\Lambda}_0^{-1} \bm{\mu}_0 + \bm{\Sigma}^{-1} \sum_{k=1}^{K}\bm{\beta}_k \right],-\frac{1}{2}\left( \bm{\Lambda}_0^{-1} + \sum_{k=1}^{K}\bm{\Sigma}^{-1} \right)\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\bm{\beta}}\left[\bm{\eta}(\bm{\beta}\mid \text{rest})\right]=\left( \bm{\Lambda}_0^{-1} \bm{\mu}_0 +  \sum_{k=1}^{K}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]\mathsf{E}_{\bm{\beta}_k}\left[\bm{\beta}_k \right],-\frac{1}{2}\left[\bm{\Lambda}_0^{-1}   + \sum_{k=1}^{K}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta})=\mathsf{N_p}(\bm{\mu}_{\bm{\beta}},\bm{\Sigma}_{\bm{\beta}})$, where:
+
+\begin{equation}
+\bm{\Sigma}_{\bm{\beta}} = \left[\bm{\Lambda}_0^{-1}   + \sum_{k=1}^{K}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right] ^{-1}
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{\mu}_{\bm{\beta}}= \left[\bm{\Lambda}_0^{-1}   + \sum_{k=1}^{K}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right]  \right]^{-1}\left[\bm{\Lambda}_0^{-1} \bm{\mu}_0 + \sum_{k=1}^{K}\mathsf{E}_{\bm{\Sigma}}\left[\bm{\Sigma}^{-1}\right] \mathsf{E}_{\bm{\beta}_k}\left[\bm{\beta}_k \right]\right]
+\end{equation}
+
+\item Update Factor for $\bm{\Sigma}$
+
+The natural parameter of $p(\bm{\Sigma}\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\bm{\Sigma}\mid \text{rest})=\left(-\frac{1}{2}\left[ \bm{S}_0 + \sum_{k=1}^{K} (\bm{\beta}_k - \bm{\beta})(\bm{\beta}_k - \bm{\beta})^\top\right],-\left[\frac{n_0 + K + p + 1}{2}\right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\bm{\Sigma}}\left[\bm{\eta}(\bm{\Sigma}\mid \text{rest})\right]=\left(-\frac{1}{2}\left[ \bm{S}_0 + \sum_{k=1}^{K} \mathsf{E}_{\bm{\beta}_k,\bm{\beta}}\left[\left(\bm{\beta}_k - \bm{\beta})(\bm{\beta}_k - \bm{\beta}\right)^\top\right]\right],-\left[\frac{n_0 + K + p + 1}{2}\right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta})=\mathsf{IW}(\nu_{\bm{\Sigma}},\bm{S}_{\bm{\Sigma}}^{-1})$, where:
+
+\begin{equation}
+\nu_{\bm{\Sigma}} = n_0+K
+\end{equation}
+
+and
+
+\begin{equation}
+\bm{S}_{\bm{\Sigma}}= \bm{S}_0 + \sum_{k=1}^{K} \mathsf{E}_{\bm{\beta}_k,\bm{\beta}}\left[\left(\bm{\beta}_k - \bm{\beta})(\bm{\beta}_k - \bm{\beta}\right)^\top\right]
+\end{equation}
+
+\item Update Factor for $\sigma_k^2$
+
+The natural parameter of $p(\sigma_k^2\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\sigma_k^2\mid \text{rest})=\left(-\left[\frac{\nu_0+\sum_{\left\lbrace j : \gamma_j = k\right\rbrace}n_j }{2}+1\right],-\left[ \frac{ \nu_0 \xi^2 +  (\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)^\top(\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)}{2}\right]\right)^\top
+\end{equation}
+
+note that $(\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)^\top(\bm{y}_{k} - \bm{X}_{k} \bm{\beta}_k)=\sum_{j=1}^{m}[\gamma_j=k](\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k)$ and\\ $\sum_{\left\lbrace j : \gamma_j = k\right\rbrace}n_j=\sum_{j=1}^{m}[\gamma_j=k]n_j$ then, the natural parameter of factor is:
+
+\begin{equation}
+\begin{split}
+\mathsf{E}_{-\sigma_k^2}\left[\bm{\eta}(\sigma_k^2 \mid \text{rest})\right]=&\Bigg(-\left[\frac{\sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]n_j + \nu_0}{2}+1\right],\\
+&\quad-\left[ \frac{ \nu_0 \mathsf{E}_{\xi^2}\left[\xi^2\right] +  \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]\mathsf{E}_{\bm{\beta}_k}\left[\left(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k\right)\right]}{2}\right]\Bigg)^\top
+\end{split}
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\bm{\beta})=\mathsf{IG}(a_{\sigma_k^2},b_{\sigma_k^2})$, where:
+
+\begin{equation}
+a_{\sigma_k^2}= \frac{\nu_0 + \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]n_j}{2}
+\end{equation}
+
+and
+
+\begin{equation}
+b_{\sigma_k^2}= \frac{ \nu_0 \mathsf{E}_{\xi^2}\left[\xi^2\right] +  \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\left[[\gamma_j=k]\right]\mathsf{E}_{\bm{\beta}_k}\left[\left(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k)^\top(\bm{y}_{j} - \bm{X}_{j} \bm{\beta}_k\right)\right]}{2}
+\end{equation}
+
+\item Update Factor for $\xi^2$
+
+The natural parameter of $p(\xi^2\mid \text{rest}) $ is:
+
+\begin{equation}
+\bm{\eta}(\xi^2\mid \text{rest})=\left(\left[ a_0 +\sum_{k=1}^{K}\frac{\nu_0}{2} -1\right],-\left[ b_0 + \frac{\nu_0}{2} \sum_{k=1}^{K}\sigma_k^{-2}\right]\right)^\top
+\end{equation}
+
+then, the natural parameter of factor is:
+
+\begin{equation}
+\mathsf{E}_{-\xi^2}\left[\bm{\eta}(\xi^2\mid \text{rest})\right]=\left(\left[ a_0 +\sum_{k=1}^{K}\frac{\nu_0}{2} -1\right],-\left[ b_0 + \frac{\nu_0}{2} \sum_{k=1}^{K} \mathsf{E}_{\sigma^2_k}\left[\sigma_k^{-2}\right]\right]\right)^\top
+\end{equation}
+
+therefore using the inverse mapping from natural to canonical parameters, we have $q(\xi^2)=\mathsf{G}(a_{\xi^2},b_{\sigma_j^2})$, where:
+
+\begin{equation}
+a_{\xi^2}=  a_0 +\sum_{k=1}^{K}\frac{\nu_0}{2}
+\end{equation}
+
+and
+
+\begin{equation}
+b_{\xi^2}= b_0 + \frac{\nu_0}{2} \sum_{k=1}^{K} \mathsf{E}_{\sigma^2_k}\left[\sigma_k^{-2}\right]
+\end{equation}
+
+\item ELBO
+\begin{equation}
+\begin{split}
+\mathcal{L}\left(q(\bm{\Theta})\right)
+&= \mathsf{E}_{\bm{\Theta}}\!\left[\log p(\bm{\Theta},\bm{y},\bm{X})\right]
+- \sum_{k=1}^{K}\mathsf{E}_{\bm{\beta}_k}\!\left[\log q(\bm{\beta}_k)\right]
+- \mathsf{E}_{\bm{\beta}}\!\left[\log q(\bm{\beta})\right] \\
+&\quad - \mathsf{E}_{\bm{\Sigma}}\!\left[\log q(\bm{\Sigma})\right]
+- \sum_{k=1}^{K}\mathsf{E}_{\sigma_k^2}\!\left[\log q(\sigma_k^2)\right]
+- \mathsf{E}_{\xi^2}\!\left[\log q(\xi^2)\right]
+- \sum_{j=1}^{m}\mathsf{E}_{\gamma_j}\!\left[\log q(\gamma_j)\right]
+- \mathsf{E}_{\bm{\omega}}\!\left[\log q(\bm{\omega})\right] \\
+&= \sum_{j=1}^{m}\sum_{k=1}^{K}\mathsf{E}_{\gamma_j}\!\big[[\gamma_j=k]\big]\Bigg[
+-\tfrac{n_j}{2}\log(2\pi)
+-\tfrac{n_j}{2}\mathsf{E}_{\sigma_k^2}\!\left[\log\sigma_k^2\right] \\
+&\qquad
+-\tfrac{1}{2}\mathsf{E}_{\sigma_k^2}\!\left[\tfrac{1}{\sigma_k^2}\right]
+\,\mathsf{E}_{\bm{\beta}_k}\!\!\left[\left(\bm{y}_j-\mathbf{X}_j\bm{\beta}_k\right)^\top\left(\bm{y}_j-\mathbf{X}_j\bm{\beta}_k\right)\right]
++\mathsf{E}_{\bm{\omega}}\!\left[\log\omega_k\right]
+\Bigg] \\
+&\quad + \sum_{k=1}^{K}\Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\mathsf{E}_{\bm{\Sigma}}\!\left[\log|\bm{\Sigma}|\right] 
+-\tfrac{1}{2}\mathsf{E}_{\bm{\Sigma},\bm{\beta}_k,\bm{\beta}}\!\!\left[(\bm{\beta}_k-\bm{\beta})^\top\bm{\Sigma}^{-1}(\bm{\beta}_k-\bm{\beta})\right]
+\Bigg] \\
+&\quad + \Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\log|\bm{\Lambda}_0|
+-\tfrac{1}{2}\mathsf{E}_{\bm{\beta}}\!\!\left[(\bm{\beta}-\bm{\mu}_0)^\top\bm{\Lambda}_0^{-1}(\bm{\beta}-\bm{\mu}_0)\right]
+\Bigg] \\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\mathbf{S}_0|
+-\tfrac{n_0p}{2}\log 2
+-\log\Gamma_p\!\!\left(\tfrac{n_0}{2}\right)
+-\tfrac{n_0+p+1}{2}\mathsf{E}_{\bm{\Sigma}}\!\left[\log|\bm{\Sigma}|\right]
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\mathbf{S}_0\,\mathsf{E}_{\bm{\Sigma}}\!\!\left[\bm{\Sigma}^{-1}\right]\right)
+\Bigg] \\
+&\quad + \sum_{k=1}^{K}\Bigg[
+\tfrac{\nu_0}{2}\log\!\left(\tfrac{\nu_0}{2}\right)
++\tfrac{\nu_0}{2}\mathsf{E}_{\xi^2}\!\!\left[\log\xi^2\right]
+-\log\Gamma\!\!\left(\tfrac{\nu_0}{2}\right) -\left(\tfrac{\nu_0}{2}+1\right)\mathsf{E}_{\sigma_k^2}\!\!\left[\log\sigma_k^2\right]
+-\tfrac{\nu_0}{2}\mathsf{E}_{\xi^2}\!\!\left[\xi^2\right]\mathsf{E}_{\sigma_k^2}\!\!\left[\tfrac{1}{\sigma_k^2}\right]
+\Bigg] \\
+&\quad + \Bigg[
+a_0\log b_0-\log\Gamma(a_0)
++(a_0-1)\mathsf{E}_{\xi^2}\left[\log\xi^2\right]
+-b_0\mathsf{E}_{\xi^2}\left[\xi^2\right]
+\Bigg] + \Bigg[ \log \frac{\Gamma\left( \sum_{k=1}^{K} \alpha_{0k} \right)}{\prod_{k=1}^{K} \Gamma(\alpha_{0k})}\\  
+&\quad + \sum_{k=1}^{K}(\alpha_{0k}-1)\mathsf{E}_{\bm{\omega}}\left[\log\omega_k\right]\Bigg]
+- \sum_{k=1}^{K}\Bigg[
+-\tfrac{p}{2}\log(2\pi e)-\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}_k}|
+\Bigg] - \Bigg[
+-\tfrac{p}{2}\log(2\pi e)-\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|
+\Bigg]\\
+&\quad -\Bigg[\tfrac{\nu_{\bm{\Sigma}}}{2}\log|\mathbf{S}_{\bm{\Sigma}}|
+- \tfrac{\nu_{\bm{\Sigma}} p}{2}\log 2
+- \log\Gamma_p\left(\tfrac{\nu_{\bm{\Sigma}}}{2}\right) - \tfrac{\nu_{\bm{\Sigma}}+p+1}{2}\left(
+-\sum_{i=1}^{p}\psi\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\mathbf{S}_{\bm{\Sigma}}^{-1}|
+\right) \\ 
+&\quad - \tfrac{\nu_{\bm{\Sigma}}}{2}\operatorname{tr}\left(\mathbf{S}_{\bm{\Sigma}}^2\right)\Bigg]- \sum_{k=1}^{K}\Bigg[
+-\log b_{\sigma_k^2}-\log\Gamma(a_{\sigma_k^2})+(a_{\sigma_k^2}+1)\psi(a_{\sigma_k^2})-a_{\sigma_k^2}
+\Bigg] \\
+&\quad - \Bigg[
+\log b_{\xi^2}-\log\Gamma(a_{\xi^2})+(a_{\xi^2}-1)\psi(a_{\xi^2})-a_{\xi^2}
+\Bigg]  - \sum_{j=1}^{m}\sum_{k=1}^{K}\rho_{jk}\log\rho_{jk} \\
+&\quad- \Bigg[
+\log\frac{\Gamma\left( \sum_{k=1}^{K} \left[\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} \right]\right)}{\prod_{k=1}^{K} \Gamma\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk}\right)}-\sum_{k=1}^{K}\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} -1\right)\Bigg[\psi\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk}\right) \\
+&\quad-\psi\left(\sum_{k=1}^{K}\left[\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} \right]\right)\Bigg]\Bigg]
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\mathcal{L}\left(q(\bm{\Theta})\right)
+&= \sum_{j=1}^{m}\sum_{k=1}^{K}\Bigg[\rho_{jk}\Bigg(
+-\tfrac{n_j}{2}\log(2\pi)
+-\tfrac{n_j}{2}\left(\log b_{\sigma_k^2}-\psi(a_{\sigma_k^2})\right) \\
+&\qquad
+-\tfrac{1}{2}\left(\tfrac{a_{\sigma_k^2}}{b_{\sigma_k^2}}\right)
+\Big[
+(\bm{y}_j-\mathbf{X}_j\bm{\mu}_{\bm{\beta}_k})^\top(\bm{y}_j-\mathbf{X}_j\bm{\mu}_{\bm{\beta}_k})
++\operatorname{tr}\left(\mathbf{X}_j^\top\mathbf{X}_j\,\bm{\Sigma}_{\bm{\beta}_k}\right)
+\Big]
+\Bigg)\Bigg] \\
+&\quad + \sum_{j=1}^{m}\sum_{k=1}^{K}\rho_{jk}
+\Bigg[
+\psi\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk}\right) -\psi\left(\sum_{k=1}^{K}\left[\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} \right]\right)
+\Bigg] \\
+&\quad + \sum_{k=1}^{K}\Bigg[
+-\tfrac{p}{2}\log(2\pi)
+-\tfrac{1}{2}\Bigg(
+-\sum_{i=1}^{p}\psi\!\!\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\bm{S}_{\bm{\Sigma}}^{-1}|
+\Bigg) \\
+&\qquad
+-\tfrac{1}{2}\operatorname{tr}\left(\bm{S}_{\bm{\Sigma}}^{-1}\!\!\left[
+(\bm{\mu}_{\bm{\beta}_k}-\bm{\mu}_{\bm{\beta}})
+(\bm{\mu}_{\bm{\beta}_k}-\bm{\mu}_{\bm{\beta}})^\top
++\bm{\Sigma}_{\bm{\beta}_k}+\bm{\Sigma}_{\bm{\beta}}
+\right]\right)
+\Bigg] \\
+&\quad + \Bigg[
+-\tfrac{p}{2}\log(2\pi)-\tfrac{1}{2}\log|\bm{\Lambda}_0|
+-\tfrac{1}{2}\Big[
+(\bm{\mu}_{\bm{\beta}}-\bm{\mu}_0)^\top\bm{\Lambda}_0^{-1}(\bm{\mu}_{\bm{\beta}}-\bm{\mu}_0)
++\operatorname{tr}\!\!\left(\bm{\Lambda}_0^{-1}\bm{\Sigma}_{\bm{\beta}}\right)
+\Big]
+\Bigg] \\
+&\quad + \Bigg[
+\tfrac{n_0}{2}\log|\bm{S}_0|-\tfrac{n_0 p}{2}\log 2-\log\Gamma_p\!\!\left(\tfrac{n_0}{2}\right)
+-\tfrac{n_0+p+1}{2}\Bigg(
+-\sum_{i=1}^{p}\psi\!\!\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\bm{S}_{\bm{\Sigma}}^{-1}|
+\Bigg) \\
+&\qquad
+-\tfrac{1}{2}\operatorname{tr}\!\!\left(\bm{S}_0\,\bm{S}_{\bm{\Sigma}}^{-1}\right)
+\Bigg]  + \sum_{k=1}^{K}\Bigg[
+\tfrac{\nu_0}{2}\log\!\left(\tfrac{\nu_0}{2}\right)
++\tfrac{\nu_0}{2}\left(\psi(a_{\xi^2})-\log b_{\xi^2}\right)
+-\log\Gamma\!\!\left(\tfrac{\nu_0}{2}\right) -\left(\tfrac{\nu_0}{2}+1\right)\left(\log b_{\sigma_k^2}-\psi(a_{\sigma_k^2})\right)\\
+&\quad-\tfrac{\nu_0}{2}\left(\tfrac{a_{\xi^2}}{b_{\xi^2}}\right)\left(\tfrac{a_{\sigma_k^2}}{b_{\sigma_k^2}}\right)
+\Bigg] + \Bigg[
+a_0\log b_0-\log\Gamma(a_0)
++(a_0-1)\left(\psi(a_{\xi^2})-\log b_{\xi^2}\right)
+-b_0\left(\tfrac{a_{\xi^2}}{b_{\xi^2}}\right)
+\Bigg] \\
+&\quad + \Bigg[\log \frac{\Gamma\left( \sum_{k=1}^{K} \alpha_{0k} \right)}{\prod_{k=1}^{K} \Gamma(\alpha_{0k})} + \sum_{k=1}^{K}(\alpha_{0k}-1)\left[\psi\left(\alpha_{0k}\right) -\psi\left(\sum_{k=1}^{K}\alpha_{0k}\right)\right]\Bigg]  - \sum_{k=1}^{K}\Bigg[
+-\tfrac{p}{2}\log(2\pi e)-\tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}_k}|
+\Bigg]\\  
+&\quad- \Bigg[
+-\tfrac{p}{2}\log(2\pi e)- \tfrac{1}{2}\log|\bm{\Sigma}_{\bm{\beta}}|
+\Bigg] -\Bigg[\tfrac{\nu_{\bm{\Sigma}}}{2}\log|\mathbf{S}_{\bm{\Sigma}}|
+- \tfrac{\nu_{\bm{\Sigma}} p}{2}\log 2
+- \log\Gamma_p\left(\tfrac{\nu_{\bm{\Sigma}}}{2}\right) \\
+&\quad - \tfrac{\nu_{\bm{\Sigma}}+p+1}{2}\left(
+-\sum_{i=1}^{p}\psi\left(\tfrac{\nu_{\bm{\Sigma}}+1-i}{2}\right)-p\log 2+\log|\mathbf{S}_{\bm{\Sigma}}^{-1}|
+\right)  -\tfrac{\nu_{\bm{\Sigma}}}{2}\operatorname{tr}\left(\mathbf{S}_{\bm{\Sigma}}^2\right)\Bigg]\\
+&\quad - \sum_{k=1}^{K}\Bigg[
+-\log b_{\sigma_k^2}-\log\Gamma(a_{\sigma_k^2})+(a_{\sigma_k^2}+1)\psi(a_{\sigma_k^2})-a_{\sigma_k^2}
+\Bigg]  - \Bigg[
+\log b_{\xi^2}-\log\Gamma(a_{\xi^2})\\
+&\quad +(a_{\xi^2}-1)\psi(a_{\xi^2})-a_{\xi^2}
+\Bigg]-\sum_{j=1}^{m}\sum_{k=1}^{K}\rho_{jk}\log\rho_{jk} - \Bigg[
+\log\frac{\Gamma\left( \sum_{k=1}^{K} \left[\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} \right]\right)}{\prod_{k=1}^{K} \Gamma\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk}\right)}\\
+&\quad-\sum_{k=1}^{K}\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} -1\right)\left[\psi\left(\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk}\right) -\psi\left(\sum_{k=1}^{K}\left[\alpha_{0k}+\sum_{j=1}^{m}\rho_{jk} \right]\right)\right]\Bigg]
+\end{split}
+\end{equation}
+
+
+\end{itemize}
+
+
+\end{appendix}

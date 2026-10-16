@@ -1,0 +1,44 @@
+\chapter{Discussion \& Conclusions}
+
+This thesis has examined Bayesian inference for regression models of increasing complexity, ranging from the Linear Regression Model (LRM), through the Hierarchical Linear Regression Model (HLRM), to the Clustered Hierarchical Linear Regression Model (CHLRM). Across these settings, we contrasted the gold standard of Markov Chain Monte Carlo (MCMC) with two deterministic alternatives: Variational Inference (VI) and Stochastic Variational Inference (SVI). Our central objective was to assess the trade-off between computational scalability and statistical fidelity, clarifying when optimization-based approximations can stand in for simulation-based inference and when their limitations become decisive.
+
+\vspace{0.3cm}
+
+The analysis of the LRM demonstrated that, under simple model structures, VI and SVI yield posterior summaries and predictive distributions that are nearly indistinguishable from those obtained by MCMC. Performance metrics such as WAIC, DIC, $R^2$, and MSE all indicated minimal loss in statistical accuracy, while computation times were reduced by an order of magnitude. This reinforces the growing consensus in the literature \cite{Ormerod2010-bc, Blei2016VariationalIA, zhang2018advancesvariationalinference} that in low-dimensional or conjugate models, variational methods provide a reliable and efficient surrogate for MCMC.
+
+\vspace{0.3cm}
+
+The hierarchical case highlighted the limitations of variational approximations. As shown in Table~\ref{tab:goodness}, MCMC clearly outperformed VI and SVI in information criteria, achieving $\mathsf{WAIC}=545.1$ and $\mathsf{DIC}=545.8$, while VI and SVI yielded substantially higher values ($\mathsf{WAIC}\approx 1316$--$1327$, $\mathsf{DIC}\approx 1333$--$1338$). This gap underscores MCMC’s ability to preserve group-level heterogeneity and parameter dependencies. By contrast, VI and SVI systematically underestimated variance components, especially for the group intercepts $\beta_{j,1}$ and $\sigma_j^2$. This pattern, illustrated in figure \ref{fig:hlrm_y_density_farms}, reflects the mean–field assumption: by factorizing the posterior into independent marginals, posterior correlations are lost and credible intervals are distorted. Nonetheless, both VI and SVI correctly recovered the main regression effects and displayed the expected shrinkage of group-level estimates. Their runtime advantage remained considerable, converging in seconds compared to hundreds of seconds for MCMC.
+
+\vspace{0.3cm}
+
+This phenomenon has been extensively discussed in the literature \cite{Blei2006-kd, Wainwright2007-ul, wang22g}, and arises from the mean–field assumption at the core of standard variational methods: by factorizing the posterior into independent components, these algorithms reduce dependencies and consequently shrink posterior variances. Our results confirmed this theoretical expectation, with Figure and ~\ref{fig:hlrm_sigma2j_farms} clearly 
+
+\vspace{0.3cm}
+
+An important perspective is offered in \cite{Blei2016VariationalIA}, who emphasize that variational inference, while computationally appealing, systematically underestimates posterior variances due to the asymmetric nature of the Kullback–Leibler divergence employed in its optimization objective. This theoretical insight directly resonates with our empirical findings in the hierarchical and clustered settings: both VI and SVI tended to deliver credible intervals narrower than those produced by MCMC, particularly for variance components. The underestimation is not an artifact of our implementation but a structural limitation of mean–field variational methods, which penalize allocating mass to regions of low posterior density more strongly than they reward covering regions of high posterior support. In practice, this results in posterior approximations that reproduce central tendencies effectively but attenuate dispersion. Our results confirm this behavior across increasingly complex models. 
+
+\vspace{0.3cm}
+
+The clustered extension posed a more balanced scenario. As reported in Table~\ref{tab:fit_chlrm_farms}, MCMC achieved $\mathsf{WAIC}=570.3$ and $\mathsf{DIC}=583.6$, while VI and SVI produced values of similar order ($\mathsf{WAIC}=574.1$ and $615.3$, $\mathsf{DIC}=579.0$ and $624.5$, respectively). Unlike the hierarchical case, the performance gap was narrower: although MCMC retained the best fit, VI and SVI approximated it reasonably well. More importantly, all three methods recovered the same clustering partition, as shown in the adjacency matrices of Figure~\ref{fig:chlrm_mcmc_A_compare}. This suggests that, despite limitations in variance estimation, this suggests that although VI and SVI distort posterior uncertainty, they still succeed in identifying global structures such as clusters, corroborating findings by \cite{Blei2006-kd, HOFFMAN,beal2003variational}. For applied contexts where clustering accuracy outweighs exact posterior calibration, this robustness is of practical significance.
+
+\vspace{0.3cm}
+
+A striking empirical result is the similarity between VI and SVI across all models. Both methods optimize the same Evidence Lower Bound (ELBO) under the same mean–field family; the only difference is that SVI employs stochastic natural gradients and mini-batching \cite{HOFFMAN, VAE}. In the moderate sample sizes of our experiments, gradient noise was small, and both approaches converged to virtually identical solutions. This explains why SVI did not show a marked advantage over VI in our study, though it remains essential for large-scale or streaming data.
+
+\vspace{0.3cm}
+
+Taken together, these results illustrate the core trade-off of Bayesian computation. MCMC remains unparalleled in preserving dependencies and delivering calibrated posterior intervals, but incurs heavy computational costs. VI and SVI, in contrast, deliver drastic computational gains by recasting inference as optimization over restricted families, at the cost of underestimating posterior uncertainty and producing unreliable information criteria. This duality echoes the theoretical accounts of \cite{Wainwright2007-ul, Blei2016VariationalIA, zhang2018advancesvariationalinference}, which highlight both the appeal and the risks of variational methods. Our empirical findings align with this literature, but add clarity by showing how these trade-offs manifest concretely in hierarchical and clustered regression contexts.
+
+\vspace{0.3cm}
+
+From a methodological standpoint, the strengths and weaknesses of each algorithm can now be summarized. MCMC is statistically reliable and broadly applicable, but slow. VI and SVI are fast and scalable, but variance underestimation and distorted posteriors are intrinsic limitations of the mean–field framework. The pedagogical contribution of this work lies in making these contrasts explicit through derivations, simulations, and reproducible implementations. Computationally, the development of VI and SVI algorithms required careful derivation of natural gradients and coordinate updates, with practical challenges in initialization and convergence monitoring. These hurdles underscore the importance of strong mathematical foundations in implementing scalable Bayesian inference.
+
+\vspace{0.3cm}
+
+Looking forward, the limitations observed here point to clear avenues for future research. Richer variational families, such as structured VI \cite{wang22g} or flow-based approximations, offer the promise of mitigating variance underestimation while retaining scalability. Hybrid methods, where VI provides rapid initialization and MCMC refines the posterior, are another promising direction \cite{Blei2016VariationalIA, zhang2018advancesvariationalinference}. Finally, applying these algorithms to large-scale educational or biomedical data would test their practical limits, validating whether the patterns observed in simulations extend to complex real-world settings.
+
+\vspace{0.3cm}
+
+In conclusion, this thesis has clarified the comparative performance of MCMC, VI, and SVI for hierarchical and clustered regression models, highlighting both the contexts where variational methods are reliable and the domains where their limitations are critical. By bridging theoretical insights with computational practice and empirical evaluation, the work contributes not only to the methodological literature but also to the accessibility of advanced Bayesian computation for applied researchers. The open-source implementation ensures reproducibility and fosters further development, supporting the broader dissemination of Bayesian methods in the statistical community.
+

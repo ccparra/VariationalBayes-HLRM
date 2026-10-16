@@ -1,0 +1,126 @@
+\documentclass[15pt,english,openany,letterpaper]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage{fancyhdr}
+\usepackage{epsfig}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{threeparttable}
+\usepackage{amscd}
+\usepackage{here}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{tabularx}
+\usepackage{subfigure}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{bm}
+\usepackage{tikz}
+\usepackage{rotating} 
+\usepackage{multicol}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{lipsum}
+
+\hypersetup{
+    colorlinks=true, 
+    linktoc=all,
+    linkcolor=blue,
+    filecolor=black,
+    urlcolor=black,
+    citebordercolor=blue,
+    citecolor=blue
+}
+
+
+\renewcommand{\theequation}{\thechapter-\arabic{equation}}
+\renewcommand{\thefigure}{\textbf{\thechapter-\arabic{figure}}}
+\renewcommand{\thetable}{\textbf{\thechapter-\arabic{table}}}
+
+
+\pagestyle{fancyplain}%\addtolength{\headwidth}{\marginparwidth}
+\textheight22.5cm \topmargin0cm \textwidth16.5cm
+\oddsidemargin0.5cm \evensidemargin-0.5cm%
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter\; #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\; #1}}
+\lhead[\fancyplain{}{\thepage}]{\fancyplain{}{\rightmark}}
+\rhead[\fancyplain{}{\leftmark}]{\fancyplain{}{\thepage}}
+\fancyfoot{}
+\thispagestyle{fancy}
+
+
+\addtolength{\headwidth}{0cm}
+\unitlength1mm %Define la unidad LE para Figuras
+%\mathindent0cm %Define la distancia de las formulas al texto,  fleqn las descentra
+\marginparwidth0cm
+\parindent0cm %Define la distancia de la primera linea de un parrafo a la margen
+
+%Para tablas,  redefine el backschlash en tablas donde se define la posici\'{o}n del texto en las
+%casillas (con \centering \raggedright o \raggedleft)
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
+
+%Espacio entre lineas
+\renewcommand{\baselinestretch}{1.5}
+
+
+\newcommand{\arr}[1]{\raisebox{1.5ex}[0cm][0cm]{#1}}
+
+
+\usepackage{Befehle}
+
+
+\begin{document}
+\pagenumbering{roman}
+\include{HojaTitulo/HojaTituloMSc}
+
+\renewcommand{\tablename}{\textbf{Table}}
+\renewcommand{\figurename}{\textbf{Figure}}
+\renewcommand{\listtablename}{List of Tables}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\bibname}{References}
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Declaration of originality}
+\include{Declaracion}
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Table of Contents}
+\tableofcontents
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{List of Figures} 
+\listoffigures
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{List of Tables} 
+\listoftables 
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{List of Algorithms} 
+\listofalgorithms
+
+\cleardoublepage
+\addcontentsline{toc}{chapter}{\numberline{List of Symbols}}
+\include{Tab_Simbolos/TabSimbolosMSc}
+
+\pagenumbering{arabic}
+\include{Kap1/Kap1}
+\include{Kap2/Kap2}
+\include{Kap3/Kap3}
+\include{Kap4/Kap4}
+%\include{Kap5/Kap5}
+%\include{Kap6/Kap6}
+\include{Anexos/Anexos}
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{apalike}
+\bibliography{BibliMSc}
+\end{document}
