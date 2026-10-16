@@ -62,13 +62,13 @@
 }
 
 .paper_git_value <- function(root, arguments) {
-  value <- tryCatch(
-    suppressWarnings(system2("git", c("-C", root, arguments),
-                             stdout = TRUE, stderr = FALSE)),
-    error = function(condition) character())
-  status <- attr(value, "status")
-  if (!length(value) || (!is.null(status) && status != 0L)) NA_character_ else
-    paste(value, collapse = "\n")
+  tryCatch({
+    value <- suppressWarnings(system2(
+      "git", c("-C", root, arguments), stdout = TRUE, stderr = FALSE))
+    status <- attr(value, "status")
+    if (!is.null(status) && status != 0L) return(NA_character_)
+    if (!length(value)) "" else paste(value, collapse = "\n")
+  }, error = function(condition) NA_character_)
 }
 
 paper_run_provenance <- function(experiment, profile, configuration,

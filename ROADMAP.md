@@ -147,7 +147,7 @@ el estimando, el algoritmo o el contrato consumido por el paper.
   `simulation-result-2`; los simuladores productivos anteriores fueron retirados.
 - La última validación del paquete ejecutó 150 bloques, sin fallos, errores,
   warnings ni skips. La validación rápida de infraestructura del paper ejecutó
-  otros 31 bloques sin incidencias; ninguno es un experimento confirmatorio.
+  otros 32 bloques sin incidencias; ninguno es un experimento confirmatorio.
 
 ### Decidido y especificado, pero todavía no implementado
 
