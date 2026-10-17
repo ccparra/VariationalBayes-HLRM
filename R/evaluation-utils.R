@@ -21,6 +21,8 @@ evaluation_rng_streams <- function(seed = NULL) {
 # model.  The standard preset reproduces the five checks used in the paper:
 # T1 global mean, T2 global SD, T3 variance of group means, T4 mean within-
 # group variance and T5 MSE against a fixed observed-data OLS reference.
+#' @rdname predictive-evaluation
+#' @export
 ppc_discrepancies <- function(statistics = "standard") {
   if (!is.character(statistics) || !length(statistics) || anyNA(statistics))
     stop("statistics must be a nonempty character vector")
@@ -154,6 +156,8 @@ pp_check_stream <- function(y_list, S, simulate_draw, target, seed = NULL,
 # Reuse response draws produced by any model$posterior_predict() call. This is
 # useful for plots and custom validation sets; posterior_predictive_check()
 # keeps a streaming simulator so large runs do not materialise y_rep.
+#' @rdname predictive-evaluation
+#' @export
 pp_check_from_prediction <- function(y, prediction, X = NULL,
                                      discrepancies = ppc_discrepancies("distribution"),
                                      return_yrep = FALSE,

@@ -6,6 +6,8 @@
   sample(rep(seq_len(folds), length.out = count), count, replace = FALSE)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 cross_validation_plan <- function(
     data, scheme = c("observation_kfold", "within_group_kfold",
                      "group_kfold", "leave_one_group_out"),
@@ -93,6 +95,8 @@ cross_validation_plan <- function(
   out
 }
 
+#' @rdname predictive-evaluation
+#' @export
 cross_validation_split <- function(plan, data, fold) {
   if (!inherits(plan, "vb_cross_validation_plan"))
     stop("plan must be created by cross_validation_plan()")
@@ -152,6 +156,8 @@ cross_validation_split <- function(plan, data, fold) {
       original_group = assessment_groups))
 }
 
+#' @rdname predictive-evaluation
+#' @export
 cross_validate_model <- function(
     model, data, prior, method = c("mcmc", "cavi", "svi"),
     initialization = initialization_from_prior(), control, plan,

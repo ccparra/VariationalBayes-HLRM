@@ -140,12 +140,16 @@
   out
 }
 
+#' @rdname fitting-and-draws
+#' @export
 posterior_draws <- function(fit, n_draws = NULL, seed = NULL,
                             include_latent = FALSE,
                             max_output_mb = 256) {
   UseMethod("posterior_draws")
 }
 
+#' @rdname fitting-and-draws
+#' @export
 posterior_draws.vb_model_fit <- function(fit, n_draws = NULL, seed = NULL,
                                          include_latent = FALSE,
                                          max_output_mb = 256) {
@@ -216,6 +220,8 @@ posterior_draws.vb_model_fit <- function(fit, n_draws = NULL, seed = NULL,
 # Interoperability with posterior/bayesplot. This conversion is lossless with
 # respect to parameter values and MCMC chain/iteration provenance; semantic
 # tensor dimensions are encoded in standard bracketed variable names.
+#' @rdname fitting-and-draws
+#' @export
 as_draws.vb_posterior_draws <- function(x, include_latent = FALSE, ...) {
   if (!inherits(x, "vb_posterior_draws"))
     stop("x must be produced by posterior_draws()")
@@ -249,6 +255,8 @@ as_draws.vb_posterior_draws <- function(x, include_latent = FALSE, ...) {
   posterior::as_draws_df(values)
 }
 
+#' @rdname fitting-and-draws
+#' @export
 as_draws.vb_model_fit <- function(x, n_draws = NULL, seed = NULL,
                                   include_latent = FALSE,
                                   max_output_mb = 256, ...) {

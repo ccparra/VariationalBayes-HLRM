@@ -1,7 +1,7 @@
 Package: VariationalBayesHLRM
 Type: Package
 Title: Bayesian Inference for Linear, Hierarchical, and Clustered Regression
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Cristian", "Parra", role = c("aut", "cre"),
     email = "cristian.parra@users.noreply.github.com")
 Author: Cristian Parra [aut, cre]
@@ -13,9 +13,10 @@ Description: Fits Gaussian linear regression, hierarchical linear regression,
     posterior prediction, predictive scoring, cross-validation, posterior
     predictive checks, and mixture relabeling.
 License: MIT + file LICENSE
+URL: https://github.com/ccparra/VariationalBayes-HLRM
+BugReports: https://github.com/ccparra/VariationalBayes-HLRM/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 8.1.0
 Depends: R (>= 4.2.0)
 Imports:
     clue,
@@ -28,6 +29,11 @@ Imports:
     stats,
     utils
 Suggests:
+    knitr,
     pkgload,
+    rmarkdown,
+    roxygen2,
     testthat (>= 3.0.0)
+VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0

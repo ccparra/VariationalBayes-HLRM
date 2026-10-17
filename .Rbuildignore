@@ -1,6 +1,7 @@
 ^\.git$
 ^\.gitignore$
 ^\.Rbuildignore$
+^\.github$
 ^dev$
 ^docs$
 ^tmp$

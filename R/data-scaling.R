@@ -1,5 +1,7 @@
 # Explicit, training-only affine scaling shared by every inference engine.
 
+#' @rdname fitting-and-draws
+#' @export
 data_scaling <- function(
     predictors = "all", response = TRUE,
     center_predictors = TRUE, scale_predictors = TRUE,
@@ -94,6 +96,8 @@ data_scaling <- function(
     to_model_matrix = to_model_matrix)
 }
 
+#' @rdname fitting-and-draws
+#' @export
 fit_scaling <- function(scaling, data) {
   if (!inherits(scaling, "vb_data_scaling_spec"))
     stop("scaling must be created by data_scaling()")
@@ -174,6 +178,8 @@ fit_scaling <- function(scaling, data) {
   transformed
 }
 
+#' @rdname fitting-and-draws
+#' @export
 transform_data <- function(data, map) {
   if (!inherits(map, "vb_data_scaling_map"))
     stop("map must be created by fit_scaling()")
@@ -220,6 +226,8 @@ restore_coefficients <- function(value, map) {
                      "transformed covariance")
 }
 
+#' @rdname fitting-and-draws
+#' @export
 transform_prior <- function(prior, map) {
   if (!inherits(prior, "vb_prior_spec"))
     stop("prior must be created by a prior constructor")
@@ -262,6 +270,8 @@ transform_residual_variance <- function(value, map) {
   value / map$response_scale^2
 }
 
+#' @rdname fitting-and-draws
+#' @export
 scaling_map <- function(fit) {
   if (!inherits(fit, "vb_model_fit"))
     stop("fit must be produced by fit_model()")

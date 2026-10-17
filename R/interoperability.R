@@ -3,10 +3,14 @@
 # loo conventionally consume draws in rows. The transpose is therefore named,
 # validated, and tested rather than left to callers.
 
+#' @rdname interoperability
+#' @export
 as_yrep <- function(x, ...) {
   UseMethod("as_yrep")
 }
 
+#' @rdname interoperability
+#' @export
 as_yrep.vb_prediction_result <- function(x, ...) {
   if (!identical(x$target, "response"))
     stop("as_yrep() requires response predictions, not latent-mean predictions")
@@ -29,6 +33,8 @@ as_yrep.vb_prediction_result <- function(x, ...) {
   out
 }
 
+#' @rdname interoperability
+#' @export
 as_yrep.vb_posterior_predictive_check <- function(x, ...) {
   if (is.null(x$y_rep))
     stop("Replicated responses were not retained; set return_yrep = TRUE")
@@ -44,10 +50,14 @@ as_yrep.vb_posterior_predictive_check <- function(x, ...) {
   out
 }
 
+#' @rdname interoperability
+#' @export
 as_log_lik_matrix <- function(x, ...) {
   UseMethod("as_log_lik_matrix")
 }
 
+#' @rdname interoperability
+#' @export
 as_log_lik_matrix.vb_log_likelihood <- function(x, ...) {
   values <- as.matrix(x$values)
   out <- t(values)

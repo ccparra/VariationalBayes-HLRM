@@ -1,0 +1,60 @@
+---
+title: "CHLRM label switching and invariant summaries"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CHLRM label switching and invariant summaries}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Finite-mixture labels are not identifiable: permuting every component label
+leaves the likelihood unchanged. Raw component-wise posterior means can
+therefore be meaningless unless draws or starts are aligned to a documented
+reference. Co-clustering probabilities are invariant to permutations.
+
+```{r, eval=FALSE}
+library(VariationalBayesHLRM)
+
+simulation <- simulate_data(
+  conditional_dgp(chlrm_model(2, 2), list(
+    component_coefficients = rbind(c(0, 1), c(2, -1)),
+    component_variances = c(0.5, 0.5),
+    mixture_weights = c(0.5, 0.5)
+  )),
+  simulation_design("independent_normal"),
+  simulation_sample(group_count = 12, observations_per_group = 15),
+  seed = 401
+)
+
+prior <- chlrm_prior(
+  c(0, 0), 10 * diag(2),
+  coefficient_dispersion_df = 4,
+  coefficient_dispersion_scale = diag(2),
+  residual_degrees_of_freedom = 4,
+  residual_variance_scale_shape = 2,
+  residual_variance_scale_rate = 2,
+  mixture_concentration = c(1, 1)
+)
+
+fit <- fit_model(
+  chlrm_model(2, 2), simulation$train, prior, "cavi",
+  initialization_kmeans(),
+  cavi_control(max_iterations = 2000, starts = 5),
+  seed = 402, verbose = FALSE
+)
+
+components(fit)
+responsibilities(fit)
+classify_groups(fit)
+classification_uncertainty(fit)
+co_clustering(fit)
+```
+
+Component summaries use the fitted relabeling reference. Classification
+uncertainty quantifies posterior ambiguity and should accompany hard labels.
+The co-clustering matrix answers whether pairs of groups belong to the same
+component and remains interpretable even when component names are arbitrary.

@@ -73,6 +73,8 @@
 #' Draws are taken from a fitted object, already restored to the input scale.
 #' Grouped models require an explicit predictive target: observed groups use
 #' their learned local state, while new groups integrate that state out.
+#' @rdname predictive-evaluation
+#' @export
 predictive_log_likelihood <- function(
     fit, newdata, predictive_target = NULL, predictive_unit = NULL,
     group_ids = NULL, groups = NULL, n_draws = NULL, seed = NULL,
@@ -162,6 +164,8 @@ predictive_log_likelihood <- function(
   likelihood
 }
 
+#' @rdname predictive-evaluation
+#' @export
 predictive_score <- function(
     fit, newdata, predictive_target = NULL, predictive_unit = NULL,
     group_ids = NULL, groups = NULL, n_draws = NULL, seed = NULL,
@@ -172,6 +176,8 @@ predictive_score <- function(
   new_predictive_score_result(fit, likelihood, return_log_likelihood)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 predictive_performance <- function(
     fit, newdata, predictive_target = NULL, predictive_unit = NULL,
     group_ids = NULL, groups = NULL, n_draws = NULL, level = 0.95,
@@ -215,6 +221,8 @@ predictive_performance <- function(
 }
 # Vehtari et al.'s variance form of WAIC. Rows are predictive units and
 # columns are posterior draws; grouping observations changes the estimand.
+#' @rdname predictive-evaluation
+#' @export
 waic_from_loglik <- function(log_lik) {
   contract <- if (inherits(log_lik, "vb_log_likelihood")) log_lik else NULL
   values <- as.matrix(log_lik)

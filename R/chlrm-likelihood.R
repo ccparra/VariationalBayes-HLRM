@@ -24,10 +24,12 @@ validate_component_draws_chlrm <- function(draws, p = NULL) {
 #' Does not use posterior responsibilities or sampled allocations.
 #' @param y_list Response vectors, one per group.
 #' @param X_list Design matrices, including an intercept if needed.
-#' @param draws List containing Betak [S,K,p], sigma2k [S,K], omega [S,K].
+#' @param draws List containing `Betak` (S by K by p), `sigma2k` (S by K),
+#'   and `omega` (S by K).
 #' @param max_output_mb Maximum size in MiB of the returned matrix (double data).
 #'   This allocation guard is not a bound on total process memory.
-#' @return Numeric matrix [groups, draws], suitable for waic_from_loglik().
+#' @return Numeric matrix with groups in rows and draws in columns, suitable
+#'   for `waic_from_loglik()`.
 loglik_group_marginal_chlrm <- function(y_list, X_list, draws,
                                        max_output_mb = 256) {
   info <- validate_grouped_data(X_list, y_list)

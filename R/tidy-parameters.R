@@ -43,14 +43,20 @@
     stringsAsFactors = FALSE)
 }
 
+#' @rdname tidy-parameters
+#' @export
 tidy_parameters <- function(x, ...) {
   UseMethod("tidy_parameters")
 }
 
+#' @rdname tidy-parameters
+#' @export
 tidy_parameters.vb_model_fit <- function(x, ...) {
   tidy_parameters(summarize_posterior(x, ...))
 }
 
+#' @rdname tidy-parameters
+#' @export
 tidy_parameters.vb_posterior_summary <- function(x, ...) {
   if (!identical(x$schema_version, "posterior-summary-1") ||
       !is.list(x$parameters) || !length(x$parameters))

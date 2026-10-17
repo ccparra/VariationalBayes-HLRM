@@ -6,18 +6,26 @@
   .new_vb_spec(fields, "vb_initialization_spec")
 }
 
+#' @rdname model-specifications
+#' @export
 initialization_from_prior <- function() .initialization_spec("from_prior")
 
+#' @rdname model-specifications
+#' @export
 initialization_ols <- function(jitter = 1e-6) {
   jitter <- .positive_scalar(jitter, "jitter")
   .initialization_spec("ols", jitter = jitter)
 }
 
+#' @rdname model-specifications
+#' @export
 initialization_kmeans <- function(jitter = 1e-6) {
   jitter <- .positive_scalar(jitter, "jitter")
   .initialization_spec("kmeans", jitter = jitter)
 }
 
+#' @rdname model-specifications
+#' @export
 initialization_values <- function(values) {
   if (!is.list(values) || !length(values) || is.null(names(values)) ||
       any(!nzchar(names(values))) || anyDuplicated(names(values)) ||

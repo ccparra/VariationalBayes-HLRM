@@ -1,3 +1,5 @@
+#' @rdname fitting-and-draws
+#' @export
 fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
                       initialization = initialization_from_prior(), control,
                       scaling = NULL, seed = NULL, verbose = TRUE) {

@@ -1,0 +1,64 @@
+---
+title: "Fitting and convergence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Fitting and convergence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`VariationalBayesHLRM` uses one typed fitting interface for LRM, HLRM, and
+CHLRM. The model, prior, initialization strategy, and inference control are
+separate objects.
+
+```{r}
+library(VariationalBayesHLRM)
+set.seed(101)
+X <- cbind(intercept = 1, predictor = seq(-2, 2, length.out = 30))
+data <- list(X = X, y = drop(X %*% c(1, 1.5)) + rnorm(30, sd = 0.5))
+prior <- lrm_prior(c(0, 0), 10 * diag(2), 4, 1)
+
+fit <- fit_model(
+  lrm_model(2), data, prior, method = "cavi",
+  initialization = initialization_ols(),
+  control = cavi_control(max_iterations = 200),
+  seed = 102, verbose = FALSE
+)
+
+fit
+fit$diagnostics$status
+coef(fit)
+```
+
+MCMC convergence is based on multiple-chain R-hat, ESS, and MCSE. CAVI uses
+full-data ELBO and parameter stabilization. SVI evaluates comparable full-data
+objectives periodically and never treats unrelated minibatch objectives as a
+stopping sequence. Consequently, all engines return the same convergence
+contract but only applicable metrics.
+
+```{r, eval=FALSE}
+mcmc_fit <- fit_model(
+  lrm_model(2), data, prior, method = "mcmc",
+  initialization = initialization_ols(),
+  control = mcmc_control(
+    warmup = 1000, post_warmup_draws = 2000, chains = 4,
+    stopping = mcmc_stopping()
+  ),
+  seed = 103, verbose = FALSE
+)
+
+svi_fit <- fit_model(
+  lrm_model(2), data, prior, method = "svi",
+  initialization = initialization_ols(),
+  control = svi_control(
+    max_iterations = 20000, minibatch_size = 10,
+    learning_rate = power_schedule(offset = 100, exponent = 0.7),
+    stopping = svi_stopping()
+  ),
+  seed = 104, verbose = FALSE
+)
+```

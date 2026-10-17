@@ -43,6 +43,8 @@
   out
 }
 
+#' @rdname model-fit-methods
+#' @export
 print.vb_model_fit <- function(x, ...) {
   convergence <- x$diagnostics
   cat("Bayesian ", x$model, " fit\n", sep = "")
@@ -56,10 +58,14 @@ print.vb_model_fit <- function(x, ...) {
   invisible(x)
 }
 
+#' @rdname model-fit-methods
+#' @export
 summary.vb_model_fit <- function(object, ...) {
   summarize_posterior(object, ...)
 }
 
+#' @rdname model-fit-methods
+#' @export
 coef.vb_model_fit <- function(object, ...) {
   posterior <- summarize_posterior(object, ...)
   coefficient_names <- .coefficient_names(object)
@@ -81,6 +87,8 @@ coef.vb_model_fit <- function(object, ...) {
   out
 }
 
+#' @rdname model-fit-methods
+#' @export
 fitted.vb_model_fit <- function(object, ...) {
   details <- evaluate_in_sample_fit(object, return_details = TRUE)
   if (object$model == "LRM") {
@@ -91,6 +99,8 @@ fitted.vb_model_fit <- function(object, ...) {
   .flatten_observation_blocks(details$fitted_values)
 }
 
+#' @rdname model-fit-methods
+#' @export
 residuals.vb_model_fit <- function(object, ...) {
   details <- evaluate_in_sample_fit(object, return_details = TRUE)
   if (object$model == "LRM") {
@@ -101,6 +111,8 @@ residuals.vb_model_fit <- function(object, ...) {
   .flatten_observation_blocks(details$residuals)
 }
 
+#' @rdname model-fit-methods
+#' @export
 nobs.vb_model_fit <- function(object, ...) {
   stats <- .fit_training_stats(object)
   if (object$model == "LRM") as.integer(stats$n) else

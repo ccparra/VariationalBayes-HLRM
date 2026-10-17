@@ -1,0 +1,47 @@
+---
+title: "Prediction and model assessment"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prediction and model assessment}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The package keeps descriptive fit, posterior predictive checks, prediction,
+and predictive criteria separate because they answer different questions.
+
+```{r}
+library(VariationalBayesHLRM)
+set.seed(301)
+X <- cbind(intercept = 1, predictor = seq(-1.5, 1.5, length.out = 30))
+data <- list(X = X, y = drop(X %*% c(0.5, 1.25)) + rnorm(30, sd = 0.4))
+prior <- lrm_prior(c(0, 0), 10 * diag(2), 4, 1)
+fit <- fit_model(
+  lrm_model(2), data, prior, "cavi", initialization_ols(),
+  cavi_control(max_iterations = 300, evaluation_draws = 100),
+  seed = 302, verbose = FALSE
+)
+
+evaluate_in_sample_fit(fit)
+posterior_predictive_check(fit, n_draws = 100, seed = 303)
+
+new_design <- X[c(1, 15, 30), , drop = FALSE]
+predict(fit, new_design, n_draws = 100, seed = 304)
+posterior_predict(fit, new_design, n_draws = 100, seed = 305)
+
+criteria <- predictive_criteria(
+  fit, n_draws = 100, seed = 306,
+  return_log_likelihood = TRUE
+)
+criteria$criteria$waic
+dim(as_log_lik_matrix(criteria$log_likelihood$observation))
+```
+
+WAIC, PSIS-LOO, cross-validation, and held-out scores are comparable only when
+their dataset, predictive unit, target, conditioning convention, and likelihood
+match. PSIS-LOO is restricted to converged MCMC posterior draws; CAVI and SVI
+use refitted cross-validation when leave-one-out evidence is required.

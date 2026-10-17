@@ -250,6 +250,7 @@ selected_vi_model <- function(fit) {
   fit$selected_model
 }
 
+#' @exportS3Method NULL
 print.vi_multistart_fit <- function(x, ...) {
   cat(sprintf("%s %s multistart: %d attempts; status %s\n",
               x$model, x$method, nrow(x$summary), x$status))

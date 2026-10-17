@@ -1,0 +1,51 @@
+---
+title: "Simulation and parameter recovery"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulation and parameter recovery}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+The simulation API separates the data-generating process, covariate design,
+and sample structure. Conditional simulation fixes a known parameter truth and
+is appropriate for parameter-recovery experiments.
+
+```{r}
+library(VariationalBayesHLRM)
+
+simulation <- simulate_data(
+  generator = conditional_dgp(
+    lrm_model(2),
+    list(coefficients = c(1, 2), residual_variance = 0.5)
+  ),
+  design = simulation_design(
+    distribution = "grid",
+    bounds = matrix(c(-2, 2), nrow = 1)
+  ),
+  sample = simulation_sample(sample_size = 40),
+  seed = 201
+)
+
+truth <- tidy_truth(simulation)
+truth
+
+prior <- lrm_prior(c(0, 0), 10 * diag(2), 4, 1)
+fit <- fit_model(
+  lrm_model(2), simulation$train, prior, "cavi",
+  initialization_ols(), cavi_control(max_iterations = 300),
+  seed = 202, verbose = FALSE
+)
+
+tidy_parameters(fit)
+```
+
+`hierarchical_dgp()` redraws local or component parameters from population
+truth for HLRM and CHLRM. `prior_predictive_dgp()` redraws the complete
+parameter hierarchy from the same prior object used for fitting and supports
+simulation-based calibration. These modes answer different questions and
+their recovery metrics must not be pooled.

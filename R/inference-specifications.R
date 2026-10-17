@@ -1,3 +1,5 @@
+#' @rdname inference-controls
+#' @export
 mcmc_stopping <- function(min_post_warmup_draws = 1000L,
                           check_every = 500L, rhat_max = 1.01,
                           ess_bulk_min = 1000, ess_tail_min = 1000,
@@ -27,6 +29,8 @@ mcmc_stopping <- function(min_post_warmup_draws = 1000L,
   ), "vb_mcmc_stopping")
 }
 
+#' @rdname inference-controls
+#' @export
 cavi_stopping <- function(objective_tolerance = 1e-8,
                           parameter_tolerance = NULL,
                           min_iterations = 1L, patience = 5L,
@@ -54,6 +58,8 @@ cavi_stopping <- function(objective_tolerance = 1e-8,
   ), "vb_cavi_stopping")
 }
 
+#' @rdname inference-controls
+#' @export
 svi_stopping <- function(objective_tolerance = 1e-4,
                          parameter_tolerance = NULL,
                          min_iterations = 1000L, patience = 5L,
@@ -79,6 +85,8 @@ svi_stopping <- function(objective_tolerance = 1e-4,
   ), "vb_svi_stopping")
 }
 
+#' @rdname inference-controls
+#' @export
 power_schedule <- function(offset = 100, exponent = 0.7) {
   if (!is.numeric(offset) || length(offset) != 1L ||
       !is.finite(offset) || offset < 0)
@@ -93,6 +101,8 @@ power_schedule <- function(offset = 100, exponent = 0.7) {
                "vb_learning_rate")
 }
 
+#' @rdname inference-controls
+#' @export
 mcmc_control <- function(warmup = 1000L, post_warmup_draws = 1000L,
                          thinning = 1L, chains = 1L,
                          evaluation_draws = NULL,
@@ -138,6 +148,8 @@ mcmc_control <- function(warmup = 1000L, post_warmup_draws = 1000L,
   .new_vb_spec(fields, c("vb_mcmc_control", "vb_inference_control"))
 }
 
+#' @rdname inference-controls
+#' @export
 cavi_control <- function(max_iterations = 10000L,
                          evaluation_draws = 500L,
                          stopping = cavi_stopping(), starts = 1L,
@@ -170,6 +182,8 @@ cavi_control <- function(max_iterations = 10000L,
   .new_vb_spec(fields, c("vb_cavi_control", "vb_inference_control"))
 }
 
+#' @rdname inference-controls
+#' @export
 svi_control <- function(max_iterations = 50000L, minibatch_size,
                         learning_rate = power_schedule(),
                         evaluation_draws = 500L,

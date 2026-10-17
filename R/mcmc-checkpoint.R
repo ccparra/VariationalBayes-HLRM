@@ -105,6 +105,8 @@
 
 # Save only plain serializable state; mutable R6 environments are reconstructed
 # on read and are never serialized as part of the public artifact.
+#' @rdname orchestration
+#' @export
 save_mcmc_checkpoint <- function(fit, path) {
   if (!is.character(path) || length(path) != 1L || !nzchar(path))
     stop("path must be one nonempty file path")
@@ -121,6 +123,8 @@ save_mcmc_checkpoint <- function(fit, path) {
   invisible(normalizePath(path, mustWork = TRUE))
 }
 
+#' @rdname orchestration
+#' @export
 read_mcmc_checkpoint <- function(path) {
   if (!is.character(path) || length(path) != 1L || !nzchar(path))
     stop("path must be one nonempty file path")

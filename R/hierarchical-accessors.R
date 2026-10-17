@@ -19,30 +19,42 @@
     summarize_posterior(fit, ...)
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 population_parameters <- function(fit, ...) {
   UseMethod("population_parameters")
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 population_parameters.vb_model_fit <- function(fit, ...) {
   summary <- .hierarchical_summary(fit, ...)
   summary$parameters[c(
     "population_coefficients", "population_covariance", "variance_scale")]
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 group_parameters <- function(fit, ...) {
   UseMethod("group_parameters")
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 group_parameters.vb_model_fit <- function(fit, ...) {
   .require_hierarchical_fit(fit, "HLRM", "group_parameters()")
   summary <- summarize_posterior(fit, ...)
   summary$parameters[c("group_coefficients", "group_variances")]
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 group_deviations <- function(fit, ...) {
   UseMethod("group_deviations")
 }
 
+#' @rdname hierarchical-accessors
+#' @export
 group_deviations.vb_model_fit <- function(fit, ...) {
   .require_hierarchical_fit(fit, "HLRM", "group_deviations()")
   summary <- summarize_posterior(fit, ...)

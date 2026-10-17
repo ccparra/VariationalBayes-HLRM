@@ -209,10 +209,14 @@
   result
 }
 
+#' @rdname fitting-and-draws
+#' @export
 summarize_posterior <- function(fit, ...) {
   UseMethod("summarize_posterior")
 }
 
+#' @rdname fitting-and-draws
+#' @export
 summarize_posterior.vb_model_fit <- function(fit, ...) {
   result <- .invoke_fit_backend(fit, "summarize_posterior", list(...))
   if (!is.null(.fit_scaling_map(fit))) {
@@ -223,20 +227,28 @@ summarize_posterior.vb_model_fit <- function(fit, ...) {
   result
 }
 
+#' @rdname predictive-evaluation
+#' @export
 evaluate_in_sample_fit <- function(fit, ...) {
   UseMethod("evaluate_in_sample_fit")
 }
 
+#' @rdname predictive-evaluation
+#' @export
 evaluate_in_sample_fit.vb_model_fit <- function(fit, ...) {
   result <- .invoke_fit_backend(fit, "evaluate_in_sample_fit", list(...))
   map <- .fit_scaling_map(fit)
   if (is.null(map)) result else .restore_in_sample_result(result, map)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 posterior_predictive_check <- function(fit, ...) {
   UseMethod("posterior_predictive_check")
 }
 
+#' @rdname predictive-evaluation
+#' @export
 posterior_predictive_check.vb_model_fit <- function(fit, ...) {
   result <- .invoke_fit_backend(fit, "posterior_predictive_check", list(...))
   result <- .ppc_effective_mcse(fit, result)
@@ -244,10 +256,14 @@ posterior_predictive_check.vb_model_fit <- function(fit, ...) {
   if (is.null(map)) result else .restore_ppc_result(result, map)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 predictive_criteria <- function(fit, ...) {
   UseMethod("predictive_criteria")
 }
 
+#' @rdname predictive-evaluation
+#' @export
 predictive_criteria.vb_model_fit <- function(fit, ...) {
   arguments <- list(...)
   map <- .fit_scaling_map(fit)
@@ -264,6 +280,8 @@ predictive_criteria.vb_model_fit <- function(fit, ...) {
     result, fit, arguments, map, return_log_likelihood = requested)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 predict.vb_model_fit <- function(object, newdata, ...) {
   map <- .fit_scaling_map(object)
   backend_data <- if (is.null(map)) newdata else
@@ -273,10 +291,14 @@ predict.vb_model_fit <- function(object, newdata, ...) {
   if (is.null(map)) result else .restore_prediction_result(result, map)
 }
 
+#' @rdname predictive-evaluation
+#' @export
 posterior_predict <- function(fit, newdata, ...) {
   UseMethod("posterior_predict")
 }
 
+#' @rdname predictive-evaluation
+#' @export
 posterior_predict.vb_model_fit <- function(fit, newdata, ...) {
   map <- .fit_scaling_map(fit)
   backend_data <- if (is.null(map)) newdata else
@@ -286,6 +308,8 @@ posterior_predict.vb_model_fit <- function(fit, newdata, ...) {
   if (is.null(map)) result else .restore_prediction_result(result, map)
 }
 
+#' @rdname fitting-and-draws
+#' @export
 fit_orchestration <- function(fit) {
   if (!inherits(fit, "vb_model_fit"))
     stop("fit must be produced by fit_model()")

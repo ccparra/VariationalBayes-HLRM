@@ -165,6 +165,8 @@
 #' @return A `vb_fit_resource_estimate` containing a conservative peak-memory
 #'   estimate, retained-fit storage, potential downstream evaluation storage
 #'   and the declared memory budget.
+#' @rdname estimate-fit-resources
+#' @export
 estimate_fit_resources <- function(model, data, control, scaling = NULL) {
   if (!inherits(model, "vb_model_spec"))
     stop("model must be created by lrm_model(), hlrm_model() or chlrm_model()")
@@ -176,6 +178,8 @@ estimate_fit_resources <- function(model, data, control, scaling = NULL) {
   .estimate_fit_resources_validated(model, validated, control, data, scaling)
 }
 
+#' @export
+#' @rdname estimate-fit-resources
 #' @export
 print.vb_fit_resource_estimate <- function(x, ...) {
   cat(sprintf(

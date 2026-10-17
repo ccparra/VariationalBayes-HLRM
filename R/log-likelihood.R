@@ -33,6 +33,8 @@ new_log_likelihood_result <- function(values, model, unit, conditioning,
   ), class = c("vb_log_likelihood", "list"))
 }
 
+#' @rdname interoperability
+#' @export
 as.matrix.vb_log_likelihood <- function(x, ...) x$values
 
 log_likelihood_estimand <- function(x) {
@@ -135,18 +137,9 @@ log_likelihood_estimand <- function(x) {
 
 #' Pointwise log likelihood under an explicit predictive estimand
 #'
-#' @param model One of LRM, HLRM or CHLRM.
-#' @param y Response vector for LRM or list of group vectors otherwise.
-#' @param X Design matrix for LRM or list of group matrices otherwise.
-#' @param draws Posterior or variational draws in the native model format.
-#' @param unit Predictive unit: observation or group.
-#' @param conditioning Whether local/group latent quantities are conditioned on
-#'   or integrated out.
-#' @param groups LRM labels required when `unit = "group"`.
-#' @param nu0 HLRM residual degrees of freedom required for group marginalization.
-#' @param marginal_control Optional HLRM quadrature controls.
-#' @param max_output_mb Explicit allocation budget for returned/local matrices.
 #' @return A `log-likelihood-1` object retaining pointwise values and estimand.
+#' @rdname predictive-evaluation
+#' @export
 log_likelihood <- function(model, y, X, draws, unit, conditioning,
                            groups = NULL, nu0 = NULL,
                            marginal_control = list(), max_output_mb = 256) {

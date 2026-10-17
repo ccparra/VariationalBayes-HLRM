@@ -70,6 +70,8 @@ new_simulation_result <- function(model, train, truth, configuration,
     stringsAsFactors = FALSE)
 }
 
+#' @rdname simulation-api
+#' @export
 tidy_truth <- function(simulation, include_observation_level = FALSE) {
   if (!inherits(simulation, "vb_simulation_result") ||
       !identical(simulation$schema_version, "simulation-result-2"))

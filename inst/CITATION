@@ -1,0 +1,10 @@
+citHeader("To cite VariationalBayesHLRM in publications, use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "VariationalBayesHLRM: Bayesian Inference for Linear, Hierarchical, and Clustered Regression",
+  author = person("Cristian", "Parra"),
+  year = "2026",
+  note = "R package version 0.2.0",
+  url = "https://github.com/ccparra/VariationalBayes-HLRM"
+)

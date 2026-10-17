@@ -326,6 +326,7 @@ combine_mcmc_chains <- function(fit, require_converged = TRUE) {
   combined
 }
 
+#' @exportS3Method NULL
 print.mcmc_multichain_fit <- function(x, ...) {
   cat(sprintf("%s multichain MCMC: %d chains x %d stored draws\n",
               x$model, nrow(x$chain_metadata), x$run_settings$samples))

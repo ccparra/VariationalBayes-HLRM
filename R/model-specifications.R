@@ -23,6 +23,8 @@
   as.numeric(x)
 }
 
+#' @rdname model-specifications
+#' @export
 lrm_model <- function(coefficient_count = NULL) {
   .new_vb_spec(list(
     schema_version = "model-spec-1",
@@ -32,6 +34,8 @@ lrm_model <- function(coefficient_count = NULL) {
   ), c("vb_lrm_model_spec", "vb_model_spec"))
 }
 
+#' @rdname model-specifications
+#' @export
 hlrm_model <- function(coefficient_count = NULL) {
   .new_vb_spec(list(
     schema_version = "model-spec-1",
@@ -41,6 +45,8 @@ hlrm_model <- function(coefficient_count = NULL) {
   ), c("vb_hlrm_model_spec", "vb_model_spec"))
 }
 
+#' @rdname model-specifications
+#' @export
 chlrm_model <- function(component_count, coefficient_count = NULL) {
   .new_vb_spec(list(
     schema_version = "model-spec-1",
@@ -59,6 +65,8 @@ chlrm_model <- function(component_count, coefficient_count = NULL) {
   x
 }
 
+#' @rdname model-specifications
+#' @export
 lrm_prior <- function(coefficient_mean, coefficient_covariance,
                       residual_degrees_of_freedom,
                       residual_variance_scale) {
@@ -139,6 +147,8 @@ lrm_prior <- function(coefficient_mean, coefficient_covariance,
     "vb_prior_spec"))
 }
 
+#' @rdname model-specifications
+#' @export
 hlrm_prior <- function(coefficient_mean, coefficient_covariance,
                        coefficient_dispersion_df,
                        coefficient_dispersion_scale,
@@ -152,6 +162,8 @@ hlrm_prior <- function(coefficient_mean, coefficient_covariance,
     residual_variance_scale_rate)
 }
 
+#' @rdname model-specifications
+#' @export
 chlrm_prior <- function(coefficient_mean, coefficient_covariance,
                         coefficient_dispersion_df,
                         coefficient_dispersion_scale,
@@ -197,6 +209,8 @@ chlrm_prior <- function(coefficient_mean, coefficient_covariance,
        parameterization = "Dirichlet concentration")
 }
 
+#' @rdname model-specifications
+#' @export
 prior_moments <- function(prior) {
   if (!inherits(prior, "vb_prior_spec"))
     stop("prior must be created by lrm_prior(), hlrm_prior() or chlrm_prior()")

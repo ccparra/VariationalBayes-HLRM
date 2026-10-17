@@ -91,7 +91,7 @@ remains clean.
 
 ### M2 — API freeze and generated documentation
 
-**Status:** in progress.
+**Status:** complete.
 
 - Audit and freeze the public symbol manifest.
 - Preserve the current 65 exports and 29 S3 methods unless a separately
@@ -109,7 +109,7 @@ test passes.
 
 ### M3 — Automation and release preparation
 
-**Status:** pending M2.
+**Status:** in progress.
 
 - Translate the README to English.
 - Add continuous integration for supported R versions on Linux, macOS, and

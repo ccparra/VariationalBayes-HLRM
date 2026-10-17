@@ -19,6 +19,8 @@
   parameters
 }
 
+#' @rdname simulation-api
+#' @export
 conditional_dgp <- function(model, parameters) {
   model <- .validate_dgp_model(model)
   parameters <- .named_parameter_list(parameters)
@@ -39,6 +41,8 @@ conditional_dgp <- function(model, parameters) {
     model = model, parameters = parameters), "vb_conditional_dgp")
 }
 
+#' @rdname simulation-api
+#' @export
 hierarchical_dgp <- function(model, parameters) {
   model <- .validate_dgp_model(model)
   if (model$model == "LRM")
@@ -58,6 +62,8 @@ hierarchical_dgp <- function(model, parameters) {
     model = model, parameters = parameters), "vb_hierarchical_dgp")
 }
 
+#' @rdname simulation-api
+#' @export
 prior_predictive_dgp <- function(model, prior) {
   model <- .validate_dgp_model(model)
   if (!inherits(prior, "vb_prior_spec") || !identical(prior$model, model$model))
@@ -67,6 +73,8 @@ prior_predictive_dgp <- function(model, prior) {
     model = model, prior = prior), "vb_prior_predictive_dgp")
 }
 
+#' @rdname simulation-api
+#' @export
 simulation_design <- function(
     distribution = c("independent_normal", "multivariate_normal", "mixed",
                      "grid", "fixed"),
@@ -137,6 +145,8 @@ simulation_design <- function(
   .simulation_spec(fields, "vb_simulation_design")
 }
 
+#' @rdname simulation-api
+#' @export
 simulation_sample <- function(sample_size = NULL, group_count = NULL,
                               observations_per_group = NULL,
                               test_sample_size = NULL,

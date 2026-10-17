@@ -1,3 +1,5 @@
+#' @rdname simulation-api
+#' @export
 simulate_data <- function(generator, design, sample, seed = NULL,
                           retain_observation_truth = FALSE,
                           max_output_mb = 256) {

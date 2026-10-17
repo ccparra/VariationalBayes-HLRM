@@ -286,6 +286,8 @@
 # Continue a typed MCMC fit without mutating the input object. For multichain
 # fits each chain resumes from its own sampler and RNG state, after which labels
 # and convergence diagnostics are recomputed jointly.
+#' @rdname orchestration
+#' @export
 resume_mcmc <- function(fit, additional_samples, seed = NULL,
                         verbose = FALSE) {
   if (!inherits(fit, "vb_model_fit") || !identical(fit$method, "MCMC"))

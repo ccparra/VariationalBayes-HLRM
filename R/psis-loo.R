@@ -3,6 +3,8 @@
 # draws; applying the posterior identity directly to draws from q would not be
 # exact Bayesian leave-one-out.
 
+#' @rdname predictive-evaluation
+#' @export
 psis_loo <- function(
     fit, predictive_target = NULL, predictive_unit = NULL, groups = NULL,
     n_draws = NULL, seed = NULL, require_converged = TRUE,

@@ -20,6 +20,8 @@
   indices
 }
 
+#' @rdname grouped-regression-data
+#' @export
 grouped_regression_data <- function(data, response, predictors, group,
                                     intercept = TRUE) {
   if (!is.data.frame(data) || !nrow(data))

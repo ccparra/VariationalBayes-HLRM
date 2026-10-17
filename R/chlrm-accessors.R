@@ -15,20 +15,28 @@
     fit, include_incidence = include_incidence, ...)
 }
 
+#' @rdname chlrm-accessors
+#' @export
 components <- function(fit, ...) {
   UseMethod("components")
 }
 
+#' @rdname chlrm-accessors
+#' @export
 components.vb_model_fit <- function(fit, ...) {
   summary <- .chlrm_posterior_summary(fit, include_incidence = FALSE, ...)
   summary$parameters[c(
     "component_coefficients", "component_variances", "mixture_weights")]
 }
 
+#' @rdname chlrm-accessors
+#' @export
 responsibilities <- function(fit, ...) {
   UseMethod("responsibilities")
 }
 
+#' @rdname chlrm-accessors
+#' @export
 responsibilities.vb_model_fit <- function(fit, ...) {
   summary <- .chlrm_posterior_summary(fit, include_incidence = FALSE, ...)
   probabilities <- summary$allocations$probabilities
@@ -38,10 +46,14 @@ responsibilities.vb_model_fit <- function(fit, ...) {
   probabilities
 }
 
+#' @rdname chlrm-accessors
+#' @export
 classify_groups <- function(fit, ...) {
   UseMethod("classify_groups")
 }
 
+#' @rdname chlrm-accessors
+#' @export
 classify_groups.vb_model_fit <- function(fit, ...) {
   probabilities <- responsibilities(fit, ...)
   labels <- max.col(probabilities, ties.method = "first")
@@ -57,15 +69,21 @@ classify_groups.vb_model_fit <- function(fit, ...) {
     stringsAsFactors = FALSE)
 }
 
+#' @rdname chlrm-accessors
+#' @export
 classification_uncertainty <- function(fit, ...) {
   classify_groups(fit, ...)[c(
     "group", "component", "assignment_probability", "uncertainty", "entropy")]
 }
 
+#' @rdname chlrm-accessors
+#' @export
 co_clustering <- function(fit, ...) {
   UseMethod("co_clustering")
 }
 
+#' @rdname chlrm-accessors
+#' @export
 co_clustering.vb_model_fit <- function(fit, ...) {
   summary <- .chlrm_posterior_summary(fit, include_incidence = TRUE, ...)
   matrix <- summary$allocations$co_clustering
