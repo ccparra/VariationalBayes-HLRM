@@ -19,6 +19,7 @@ source(file.path(root, "paper", "evaluation", "R", "provenance.R"))
 source(file.path(root, "paper", "evaluation", "R", "tasks.R"))
 source(file.path(root, "paper", "evaluation", "R", "e2.R"))
 source(file.path(root, "paper", "evaluation", "R", "e3.R"))
+source(file.path(root, "paper", "evaluation", "R", "e3-execution.R"))
 source(file.path(root, "paper", "evaluation", "R", "e4.R"))
 source(file.path(root, "paper", "evaluation", "R", "e5.R"))
 

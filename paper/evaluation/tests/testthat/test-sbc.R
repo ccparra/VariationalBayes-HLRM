@@ -291,6 +291,72 @@ test_that("E3 pilot and full fits remain guarded outside frozen runners", {
                "freeze_e3_configuration")
 })
 
+test_that("E3 screen review separates execution safety from scientific quality", {
+  results <- data.frame(
+    task_id = c("cavi", paste0("svi-", 1:9)),
+    method = c("CAVI", rep("SVI", 9)),
+    minibatch_size = c(NA, rep(c(25, 100, 200), each = 3)),
+    exponent = c(NA, rep(c(.6, .7, .8), 3)),
+    offset = c(NA, rep(c(1, 10, 100), 3)),
+    final_elbo = -100 - 0:9, mlpd = -1 - (0:9) / 100,
+    ari = c(.8, seq(.7, .1, length.out = 9)),
+    cpe = c(.1, seq(.2, .8, length.out = 9)),
+    runtime = rep(2, 10), iterations = c(50, rep(1200, 9)),
+    convergence_status = rep("converged", 10),
+    result_file_mb = rep(1.25, 10), status = rep("complete", 10),
+    worker_wall_seconds = rep(10, 10),
+    measured_peak_rss_mb = rep(500, 10),
+    rss_measurement = rep("test-rss", 10),
+    output_fingerprint = rep("md5:screen", 10),
+    git_commit = rep("abc", 10), git_dirty = rep(FALSE, 10),
+    stringsAsFactors = FALSE)
+  review <- review_e3_screen(results)
+  expect_true(review$summary$ready_for_factorial)
+  expect_equal(review$summary$projected_factorial_wall_seconds, 1090)
+  expect_equal(review$summary$projected_factorial_storage_mb, 136.25)
+  expect_equal(review$summary$svi_first_eligible_stop_fraction, 1)
+  expect_identical(review$ranking$task_id[[1L]], "svi-1")
+
+  unsafe <- review_e3_screen(results, max_memory_mb = 900)
+  expect_false(unsafe$summary$ready_for_factorial)
+  expect_identical(
+    unsafe$gate$status[unsafe$gate$requirement == "rss_safety_margin"],
+    "fail")
+})
+
+test_that("E3 RSS parser respects Darwin bytes and Linux kilobytes", {
+  expect_equal(.paper_peak_rss_mb(
+    "  524288000  maximum resident set size", "Darwin"), 500)
+  expect_equal(.paper_peak_rss_mb(
+    "Maximum resident set size (kbytes): 512000", "Linux"), 500)
+  expect_true(is.na(.paper_peak_rss_mb("no measurement", "Darwin")))
+})
+
+test_that("E3 factorial preflight carries passing screen evidence", {
+  expect_error(
+    prepare_e3_preflight(tempfile(), "pilot", "factorial"),
+    "passing E3 screen review")
+  review <- structure(list(summary = data.frame(
+    ready_for_factorial = TRUE,
+    screen_output_fingerprint = "md5:screen",
+    observed_max_rss_mb = 500,
+    rss_safety_factor = 2,
+    memory_budget_mb = 2048,
+    projected_factorial_wall_seconds = 1000,
+    projected_factorial_storage_mb = 150,
+    stringsAsFactors = FALSE)),
+    class = c("paper_e3_screen_review", "list"))
+  output <- tempfile("e3-factorial-preflight-")
+  result <- prepare_e3_preflight(
+    output, "pilot", "factorial", screen_review = review)
+  expect_identical(result$summary$runtime_estimate_status,
+                   "projected_from_empirical_screen")
+  expect_identical(result$summary$screen_output_fingerprint, "md5:screen")
+  empirical <- result$gate$status[result$gate$requirement %in%
+                                    c("empirical_wall_time", "empirical_peak_rss")]
+  expect_identical(empirical, c("pass", "pass"))
+})
+
 test_that("E4 smoke uses paired nested datasets", {
   tasks <- expand_e4_tasks("smoke")
   expect_equal(nrow(tasks), 5)

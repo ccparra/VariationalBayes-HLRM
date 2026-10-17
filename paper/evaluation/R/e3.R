@@ -122,11 +122,20 @@ expand_e3_pilot_stage <- function(stage = c("screen", "factorial")) {
 
 prepare_e3_preflight <- function(output_dir, profile = c("pilot", "full"),
                                  stage = c("screen", "factorial"),
-                                 max_memory_mb = 2048) {
+                                 max_memory_mb = 2048,
+                                 screen_review = NULL) {
   profile <- match.arg(profile)
   stage <- match.arg(stage)
   if (profile == "full" && stage == "screen")
     stop("screen is a pilot-only stage")
+  pilot_factorial <- identical(profile, "pilot") &&
+    identical(stage, "factorial")
+  if (pilot_factorial &&
+      (!inherits(screen_review, "paper_e3_screen_review") ||
+       !isTRUE(screen_review$summary$ready_for_factorial)))
+    stop("A passing E3 screen review is required for factorial preflight")
+  if (!pilot_factorial && !is.null(screen_review))
+    stop("screen_review applies only to the pilot factorial preflight")
   tasks <- if (profile == "pilot") expand_e3_pilot_stage(stage) else
     expand_e3_tasks("full")
   scenario <- scenario_e3(profile, tasks$dataset_seed[[1L]])
@@ -165,7 +174,16 @@ prepare_e3_preflight <- function(output_dir, profile = c("pilot", "full"),
       max(plan$estimated_evaluation_storage_mb),
     tasks_within_memory_budget = sum(plan$within_memory_budget),
     sequential_execution_only = TRUE,
-    runtime_estimate_status = "requires empirical screen",
+    runtime_estimate_status = if (pilot_factorial)
+      "projected_from_empirical_screen" else "requires empirical screen",
+    screen_output_fingerprint = if (pilot_factorial)
+      screen_review$summary$screen_output_fingerprint else NA_character_,
+    observed_screen_max_rss_mb = if (pilot_factorial)
+      screen_review$summary$observed_max_rss_mb else NA_real_,
+    projected_wall_seconds = if (pilot_factorial)
+      screen_review$summary$projected_factorial_wall_seconds else NA_real_,
+    projected_storage_mb = if (pilot_factorial)
+      screen_review$summary$projected_factorial_storage_mb else NA_real_,
     scientific_result = FALSE,
     stringsAsFactors = FALSE)
   summary <- .paper_annotate_manifest(summary, provenance)
@@ -178,7 +196,8 @@ prepare_e3_preflight <- function(output_dir, profile = c("pilot", "full"),
     status = c(
       "pass", "pass",
       if (all(plan$within_memory_budget)) "pass" else "fail", "pass",
-      "pending", "pending", "pending",
+      if (pilot_factorial) "pass" else "pending",
+      if (pilot_factorial) "pass" else "pending", "pending",
       if (isFALSE(provenance$git_dirty)) "pass" else "pending",
       "pending", "blocked"),
     detail = c(
@@ -187,13 +206,24 @@ prepare_e3_preflight <- function(output_dir, profile = c("pilot", "full"),
       paste("maximum dimension estimate",
             sprintf("%.1f MB", max(plan$estimated_peak_memory_mb))),
       "max_concurrent_fits = 1",
-      "measure with the screen stage before factorial execution",
-      "measure operating-system RSS; the package estimate is not RSS",
+      if (pilot_factorial) sprintf(
+        "screen projects %.1f seconds for %d tasks",
+        screen_review$summary$projected_factorial_wall_seconds, nrow(plan)) else
+        "measure with the screen stage before factorial execution",
+      if (pilot_factorial) sprintf(
+        "screen maximum %.1f MiB; %.1fx margin passes %.1f MiB budget",
+        screen_review$summary$observed_max_rss_mb,
+        screen_review$summary$rss_safety_factor,
+        screen_review$summary$memory_budget_mb) else
+        "measure operating-system RSS; the package estimate is not RSS",
       "verify free space after measuring screen artifacts",
       if (isFALSE(provenance$git_dirty)) provenance$git_commit else
         "working tree is dirty",
-      "freeze the reviewed preflight fingerprint after screen acceptance",
-      "no pilot/full runner is enabled by this preflight"),
+      if (identical(stage, "screen"))
+        "freeze the reviewed preflight fingerprint" else
+        "freeze only with an accepted passing screen review",
+      paste("run-e3-pilot.R additionally requires --execute and both accepted",
+            "fingerprints for factorial; full remains blocked")),
     stringsAsFactors = FALSE)
   gate$ready_to_execute <- FALSE
   gate <- .paper_annotate_manifest(gate, provenance)
@@ -211,7 +241,9 @@ prepare_e3_preflight <- function(output_dir, profile = c("pilot", "full"),
 }
 
 freeze_e3_configuration <- function(preflight_dir,
-                                    accepted_configuration_fingerprint) {
+                                    accepted_configuration_fingerprint,
+                                    screen_review = NULL,
+                                    accepted_screen_output_fingerprint = NULL) {
   if (!is.character(accepted_configuration_fingerprint) ||
       length(accepted_configuration_fingerprint) != 1L ||
       !nzchar(accepted_configuration_fingerprint))
@@ -222,6 +254,26 @@ freeze_e3_configuration <- function(preflight_dir,
     stop("preflight_dir must contain configuration-candidate.rds and provenance.rds")
   configuration <- readRDS(configuration_path)
   recorded <- readRDS(provenance_path)
+  if (identical(configuration$stage, "factorial")) {
+    if (!inherits(screen_review, "paper_e3_screen_review") ||
+        !isTRUE(screen_review$summary$ready_for_factorial))
+      stop("A passing E3 screen review is required before freezing factorial")
+    if (!is.character(accepted_screen_output_fingerprint) ||
+        length(accepted_screen_output_fingerprint) != 1L ||
+        !nzchar(accepted_screen_output_fingerprint) ||
+        !identical(screen_review$summary$screen_output_fingerprint,
+                   accepted_screen_output_fingerprint))
+      stop("Accepted screen output fingerprint does not match its review")
+    upstream_evidence <- as.list(screen_review$summary[1L, c(
+      "schema_version", "screen_output_fingerprint", "screen_git_commit",
+      "observed_max_rss_mb", "rss_safety_factor", "memory_budget_mb",
+      "projected_factorial_wall_seconds",
+      "projected_factorial_storage_mb", "ready_for_factorial")])
+  } else {
+    if (!is.null(screen_review) || !is.null(accepted_screen_output_fingerprint))
+      stop("Screen evidence applies only to the factorial stage")
+    upstream_evidence <- NULL
+  }
   current <- paper_run_provenance("E3", recorded$profile, configuration)
   if (!identical(recorded$configuration_fingerprint,
                  accepted_configuration_fingerprint) ||
@@ -236,10 +288,11 @@ freeze_e3_configuration <- function(preflight_dir,
   if (!isFALSE(current$git_dirty))
     stop("E3 configuration can only be frozen from a clean Git commit")
   frozen <- structure(list(
-    schema_version = "paper-e3-frozen-configuration-1",
+    schema_version = "paper-e3-frozen-configuration-2",
     experiment = "E3", profile = configuration$protocol$profile,
     stage = configuration$stage,
     configuration = configuration,
+    upstream_evidence = upstream_evidence,
     configuration_fingerprint = current$configuration_fingerprint,
     source_fingerprint = current$source_fingerprint,
     git_commit = current$git_commit,
@@ -252,6 +305,8 @@ freeze_e3_configuration <- function(preflight_dir,
     profile = frozen$profile, stage = frozen$stage,
     configuration_fingerprint = frozen$configuration_fingerprint,
     source_fingerprint = frozen$source_fingerprint,
+    screen_output_fingerprint = if (is.null(frozen$upstream_evidence)) NA_character_ else
+      frozen$upstream_evidence$screen_output_fingerprint,
     git_commit = frozen$git_commit, frozen_at_utc = frozen$frozen_at_utc,
     stringsAsFactors = FALSE),
     file.path(preflight_dir, "frozen-configuration.csv"), row.names = FALSE)
@@ -260,7 +315,7 @@ freeze_e3_configuration <- function(preflight_dir,
 
 validate_e3_frozen_configuration <- function(frozen, stage = "screen") {
   if (!inherits(frozen, "paper_e3_frozen_configuration") ||
-      !identical(frozen$schema_version, "paper-e3-frozen-configuration-1"))
+      !identical(frozen$schema_version, "paper-e3-frozen-configuration-2"))
     stop("frozen must be produced by freeze_e3_configuration()")
   if (!identical(frozen$profile, "pilot") || !identical(frozen$stage, stage))
     stop("Frozen E3 configuration does not match the requested pilot stage")
@@ -272,6 +327,12 @@ validate_e3_frozen_configuration <- function(frozen, stage = "screen") {
       !identical(current$git_commit, frozen$git_commit) ||
       !isFALSE(current$git_dirty))
     stop("Frozen E3 configuration no longer matches the clean source commit")
+  if (identical(stage, "factorial") &&
+      (is.null(frozen$upstream_evidence) ||
+       !isTRUE(frozen$upstream_evidence$ready_for_factorial) ||
+       !is.character(frozen$upstream_evidence$screen_output_fingerprint) ||
+       !nzchar(frozen$upstream_evidence$screen_output_fingerprint)))
+    stop("Frozen factorial lacks accepted E3 screen evidence")
   invisible(current)
 }
 

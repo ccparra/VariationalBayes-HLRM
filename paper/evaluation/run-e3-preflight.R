@@ -16,7 +16,7 @@ if (!is.null(install_status) && install_status != 0L)
 .libPaths(c(validation_library, .libPaths()))
 suppressPackageStartupMessages(library(VariationalBayesHLRM))
 for (file in c("scenarios.R", "metrics.R", "aggregation.R", "provenance.R",
-               "tasks.R", "e3.R"))
+               "tasks.R", "e3.R", "e3-execution.R"))
   source(file.path(root, "paper", "evaluation", "R", file))
 
 arguments <- commandArgs(trailingOnly = TRUE)
@@ -34,9 +34,14 @@ if (!is.finite(max_memory_mb) || max_memory_mb <= 0)
 
 output_dir <- file.path(root, "paper", "evaluation", "output", "preflight",
                         "E3", paste(profile, stage, sep = "-"))
+screen_review <- if (identical(profile, "pilot") &&
+                     identical(stage, "factorial")) {
+  write_e3_screen_review(file.path(
+    root, "paper", "evaluation", "output", "pilot", "E3", "screen"))
+} else NULL
 result <- prepare_e3_preflight(
   output_dir, profile = profile, stage = stage,
-  max_memory_mb = max_memory_mb)
+  max_memory_mb = max_memory_mb, screen_review = screen_review)
 print(result$summary, row.names = FALSE)
 cat("\nExecution gate (preflight never runs model fits):\n")
 print(result$gate[c("requirement", "status", "detail")], row.names = FALSE)

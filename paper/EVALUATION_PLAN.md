@@ -212,7 +212,7 @@ la matriz siguiente y deben actualizarse junto con el código.
 | 9--15 | Sistema completo de métricas | La suite implementa recuperación alineada, cobertura, fidelidad respecto a MCMC, ARI, CPE, entropía, MLPD, regret y MCSE; E1 ya persiste métricas por tarea y agregados básicos | Métricas experimentales en esta suite | Parcial | Completar agregación por parámetro/réplica y tablas confirmatorias con escalas explícitas |
 | 16--17 | Tablas 2--4 y figuras 1--5 | No existen como productos Monte Carlo | Producción automática genérica | Ausente | Generarlas desde resultados por réplica, con MCSE |
 | 18 | E2 de recuperación de K | `run-e2-smoke.R` prueba CAVI/SVI sobre K candidatos y MCMC sobredimensionado, con selección por ELBO/MLPD y ocupación | Protocolo E2 versionado | Parcial | Ejecutar piloto y luego 200 datasets con la grilla confirmatoria |
-| 19 | E3 factorial 4x3x3 con 20 semillas | El protocolo declara el factorial exacto; el preflight materializa 10 tareas `screen` y 109 `factorial`, con controles/presupuesto y ejecución todavía bloqueada | Protocolo E3 versionado | Parcial | Ejecutar `screen`, medir RSS/tiempo, congelar y luego ejecutar las 720 corridas SVI |
+| 19 | E3 factorial 4x3x3 con 20 semillas | El `screen` completó 10/10 tareas, midió 496 MiB RSS máximo y proyectó el factorial piloto en 17.3 minutos/143.9 MiB; su gate y huella ya permiten congelar las 109 tareas piloto | Protocolo E3 versionado | Parcial avanzado | Ejecutar el factorial piloto, revisar tres semillas por celda y sólo entonces congelar las 720 corridas SVI |
 | 20 | E4 con datasets anidados y 20 réplicas | `run-e4-smoke.R` usa prefijos anidados de un dataset máximo y compara CAVI/SVI, con MCMC en el tamaño permitido | Protocolo E4 versionado | Parcial | Ejecutar tamaños y 20 réplicas confirmatorias después del piloto de recursos |
 | 21 | E5 Farms completo | `run-e5-smoke.R` ajusta MCMC/CAVI/SVI, K candidatos, CV dentro de finca, WAIC marginal, estabilidad multistart y MCMC sobredimensionado | Protocolo E5 versionado | Parcial | Congelar preprocessing/controles y ejecutar el presupuesto confirmatorio |
 | 22 | WAIC marginal por finca con 5000 draws | Criterio marginal integrado, metadatos y S configurable | Tercer incremento | Parcial | Configurar 5000 draws y registrar diagnósticos en runner final |
@@ -450,14 +450,19 @@ K en Farms. Falta expandirlo a las 200 réplicas y la grilla confirmatoria.
 
 #### E3: sensibilidad de SVI
 
-Estado: infraestructura `smoke` y preflight implementadas. El protocolo declara
-el factorial exacto; `run-e3-smoke.R` ajusta una referencia CAVI y una celda
-SVI, mientras `run-e3-preflight.R` materializa un `screen` de 10 tareas y el
-piloto factorial de 109 sin hacer ajustes. La referencia CAVI usa cinco inicios;
-cada semilla SVI es deliberadamente una corrida independiente con un inicio,
-para conservar las 720 corridas especificadas y medir fallos de convergencia.
-El análisis de tuning de la tesis permanece separado y no alimenta E3. Falta
-ejecutar/medir el `screen`, congelar y luego correr las 720 SVI confirmatorias.
+Estado: `smoke`, preflight y `screen` implementados. El `screen` ajustó una
+referencia CAVI, las ocho esquinas y el centro del factorial SVI; completó 10/10
+tareas en 93.9 segundos, con 496 MiB RSS máximo. El gate exige margen de dos
+veces ese RSS dentro de 2048 MiB y proyecta las 109 tareas piloto en 17.3
+minutos y 143.9 MiB. La referencia CAVI usa cinco inicios; cada semilla SVI es
+deliberadamente una corrida independiente con un inicio, para conservar las
+720 corridas especificadas y medir fallos sin ocultarlos mediante selección
+multistart. Todas las corridas SVI del `screen` se detuvieron en la primera
+oportunidad permitida (iteración 1200); esto se registra como diagnóstico y no
+como garantía de calidad, pues algunas soluciones estables colapsaron. El
+análisis de tuning de la tesis permanece separado y no alimenta E3. Falta
+ejecutar el factorial piloto, revisar variación entre tres semillas y luego
+congelar/correr las 720 SVI confirmatorias.
 
 #### E4: escalabilidad
 
@@ -625,7 +630,7 @@ MCSE, coberturas, correlaciones o criterios pointwise.
 ## Pruebas de aceptación antes de experimentar
 
 Las pruebas actuales cubren los 17 puntos en ejemplos pequeños mediante tests
-del paquete, 32 bloques propios de la suite y ejecuciones smoke reanudables:
+del paquete, 35 bloques propios de la suite y ejecuciones smoke reanudables:
 generador/prior, equivalencia CAVI--SVI, reglas de parada, relabeling, WAIC
 marginal, predicción, reutilización de `y_rep`, métricas manuales, escalado sin
 fuga, persistencia y los tres DGP. También cubren contratos SPD, RNG,
@@ -737,10 +742,11 @@ instalan el paquete y escriben RDS por tarea más CSV inspeccionables. E1 agrega
 recuperación/clustering/predicción; E2 selecciona K; E3 compara SVI con CAVI;
 E4 usa tamaños anidados; y E5 prueba WAIC, CV dentro de finca, estabilidad y
 MCMC sobredimensionado. La agregación E1 ya conserva coordenadas alineadas,
-sesgo, RMSE, cobertura, ancho y MCSE; seis figuras smoke se regeneran sólo desde
-CSV. El preflight E3 ya materializa los controles, 10 tareas `screen` y 109
-tareas `factorial`, y escribe presupuesto/puerta sin ejecutar ajustes. Falta
-medir tiempo, RSS y almacenamiento reales con `screen`.
+sesgo, RMSE, cobertura, ancho y MCSE; seis figuras smoke y tres figuras del
+`screen` E3 se regeneran sólo desde CSV/RDS terminados. E3 ya completó sus 10
+tareas `screen`, midió tiempo/RSS/almacenamiento y
+escribió una puerta reproducible que vincula la huella aceptada con las 109
+tareas `factorial`. Falta ejecutar y evaluar ese factorial piloto.
 
 ### Fase E-C: perfil `pilot`
 
@@ -769,10 +775,10 @@ datos reales.
 
 Mientras el paquete cierra P3/P4, la evaluación puede avanzar sin duplicarlo:
 
-1. ejecutar las 10 tareas del `screen` E3 de manera secuencial y medir
-   RSS/tiempo/almacenamiento;
-2. revisar fallos y congelar la huella de configuración antes de habilitar las
-   109 tareas `factorial` del piloto;
+1. regenerar y congelar el preflight factorial E3 desde el commit limpio,
+   aceptando tanto su huella como la salida revisada del `screen`;
+2. ejecutar secuencialmente las 109 tareas piloto y estudiar variación entre
+   semillas, óptimos colapsados, calidad predictiva y costo;
 3. fijar límites globales antes de E1/E2/E4/E5 y mantener `full` bloqueado.
 
 No corresponde a esta suite implementar SVI para LRM —ya disponible en el

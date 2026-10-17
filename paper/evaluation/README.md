@@ -127,15 +127,45 @@ en `provenance.csv` para congelarlo:
 
 ```sh
 Rscript paper/evaluation/freeze-e3-preflight.R \
+  --stage=screen \
   --accept-configuration-fingerprint=md5:HUELLA_REVISADA
-Rscript paper/evaluation/run-e3-pilot-screen.R --execute \
+Rscript paper/evaluation/run-e3-pilot.R --execute --stage=screen \
   --accept-configuration-fingerprint=md5:HUELLA_REVISADA
+Rscript paper/evaluation/review-e3-pilot-screen.R
+Rscript paper/evaluation/run-e3-pilot-figures.R
 ```
 
-El segundo comando sólo admite las 10 tareas `screen`, una por proceso y de
-forma secuencial. Registra tiempo de pared, RSS máximo del sistema operativo,
-logs y RDS reanudables. No puede ejecutar `factorial` ni `full`; si una tarea
-falla, se detiene y conserva las anteriores.
+El runner admite sólo las etapas piloto `screen` y `factorial`, una tarea por
+proceso y de forma secuencial; `full` permanece bloqueado. Registra tiempo de
+pared, RSS máximo del sistema operativo, logs y RDS reanudables. Si una tarea
+falla, se detiene y conserva las anteriores. La revisión del `screen` escribe
+`screen-review.csv`, `screen-gate.csv`, `screen-ranking.csv` y el RDS que
+vincula la evidencia aceptada con la congelación factorial. El gate exige dos
+veces el RSS máximo observado dentro del presupuesto: no interpreta ese pase
+de recursos como evidencia de calidad estadística.
+
+El reporte gráfico genera tres PNG desde CSV/RDS terminados, sin volver a
+ajustar modelos: comparación de ELBO/MLPD/ARI/CPE, perfil de tiempo/RSS/disco y
+trayectorias del ELBO suavizado. Su manifiesto marca explícitamente
+`scientific_result = FALSE` porque el `screen` es preliminar.
+
+Para el factorial, primero se regenera su preflight desde el commit limpio. La
+congelación y la ejecución requieren aceptar tanto su propia huella como la
+huella de salida del `screen` aprobada:
+
+```sh
+Rscript paper/evaluation/run-e3-preflight.R --profile=pilot --stage=factorial
+Rscript paper/evaluation/freeze-e3-preflight.R \
+  --stage=factorial \
+  --accept-configuration-fingerprint=md5:HUELLA_FACTORIAL \
+  --accept-screen-output-fingerprint=md5:HUELLA_SCREEN
+Rscript paper/evaluation/run-e3-pilot.R --execute --stage=factorial \
+  --accept-configuration-fingerprint=md5:HUELLA_FACTORIAL \
+  --accept-screen-output-fingerprint=md5:HUELLA_SCREEN
+```
+
+El factorial piloto contiene 109 tareas. La configuración actual fuerza un
+solo thread BLAS/OpenMP/MKL y no inicia procesos concurrentes.
 
 La suite puede escribir archivos y decidir su retención. El paquete sólo
 devuelve objetos serializables o escribe un checkpoint cuando se invoca una

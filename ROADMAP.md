@@ -147,14 +147,15 @@ el estimando, el algoritmo o el contrato consumido por el paper.
   `simulation-result-2`; los simuladores productivos anteriores fueron retirados.
 - La última validación del paquete ejecutó 150 bloques, sin fallos, errores,
   warnings ni skips. La validación rápida de infraestructura del paper ejecutó
-  otros 32 bloques sin incidencias; ninguno es un experimento confirmatorio.
+  otros 35 bloques sin incidencias; ninguno es un experimento confirmatorio.
 
 ### Decidido y especificado, pero todavía no implementado
 
-- ejecutar el `screen` E3 ya preparado; el preflight materializa controles,
-  presupuesto y puerta para 10 tareas `screen` y 109 tareas `factorial` sin
-  correr ajustes; las huellas, la agregación paramétrica E1 y seis figuras
-  smoke ya verifican el pipeline previo;
+- ejecutar el factorial piloto E3: el `screen` de 10 tareas ya terminó y su
+  gate reproducible aprobó completitud, procedencia y margen de dos veces el
+  RSS máximo (496 MiB); proyecta 109 tareas secuenciales en 17.3 minutos y
+  143.9 MiB. El nuevo runner exige congelación y aceptación explícita de las
+  huellas del factorial y del `screen`;
 - decidir la interfaz opcional fórmula/datos; los métodos base, accesores
   jerárquicos y CHLRM, salidas tidy, extractores orientados para
   `loo`/`bayesplot` y la conversión al paquete `posterior` ya están
@@ -214,8 +215,9 @@ fallos, errores, advertencias ni skips.
 convergencia multichain por defecto; CAVI/SVI usan CV refitted. Siguen métricas
 agregadas contra verdad y comparaciones entre métodos en la suite del paper,
 no en la API.
-En paralelo, el siguiente corte científico es ejecutar el `screen` E3, medir
-recursos reales y congelar su configuración SVI; sólo después se ejecutarán
-los experimentos confirmatorios. La lista completa I0--I7 y sus
+En paralelo, el siguiente corte científico es congelar y ejecutar el factorial
+piloto E3, ya que el `screen` y su revisión de recursos están completos; sólo
+después se congelará E3 `full` y se ejecutarán los demás experimentos
+confirmatorios. La lista completa I0--I7 y sus
 criterios de cierre vive sólo en `PACKAGE_ROADMAP.md` para no mantener dos
 planes operativos divergentes.

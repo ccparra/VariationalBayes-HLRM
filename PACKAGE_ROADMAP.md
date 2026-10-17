@@ -581,9 +581,10 @@ arquitectura, pero no se publican como compatibilidad legacy.
    inicio para estabilidad. Faltan vignettes y decidir si una interfaz adicional
    `formula + data` justifica su costo de mantenimiento.
 8. **I7 — P5, presupuesto seguro (en curso).** La guarda pública y uniforme de
-   memoria y el registro por tarea smoke están implementados. Falta medir RSS y
-   tiempo en todos los tamaños piloto, congelar límites y optimizar sólo los
-   kernels que el perfil identifique.
+   memoria y el registro por tarea smoke están implementados. E3 ya midió un
+   máximo de 496 MiB RSS y pasó un margen de seguridad de dos veces dentro del
+   presupuesto de 2048 MiB. Falta extender el profiling a E1/E2/E4/E5 y
+   optimizar sólo los kernels que el perfil identifique.
 
 P5 es transversal: cada incremento registra pruebas y costo local; antes del
 `pilot` se perfila la API congelada y se fijan límites seguros. La suite del
@@ -612,7 +613,7 @@ sustitución textual que conservara decisiones retiradas:
 | `runs/01-farms-hlrm` y `runs/02-farms-chlrm` | implementado | priors explícitas, escalado y fachada tipada |
 | `runs/03-simulation` | implementado | DGP tipados y verdad versionada |
 | tuning SVI y selección de K | implementado | controles tipados, WAIC/LOGO y perfil smoke |
-| recetas del artículo | implementado en `smoke` | E1--E5 consumen el paquete instalado; el preflight E3 materializa controles/presupuesto y las figuras smoke se regeneran desde CSV; `pilot/full` y productos confirmatorios siguen siendo responsabilidad de la suite |
+| recetas del artículo | implementado en `smoke` y `screen` E3 | E1--E5 consumen el paquete instalado; el screen E3 midió recursos y habilita mediante gate el factorial piloto; `full` y productos confirmatorios siguen siendo responsabilidad de la suite |
 
 `dev/check-consumer-boundary.R` rechaza carga directa de kernels, `:::`,
 constructores históricos de hiperparámetros y orquestadores privados desde

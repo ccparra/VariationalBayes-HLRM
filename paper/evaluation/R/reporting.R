@@ -226,3 +226,153 @@ generate_smoke_figures <- function(input_dir, figure_dir = file.path(input_dir, 
                    row.names = FALSE)
   manifest
 }
+
+.e3_configuration_label <- function(data) {
+  ifelse(data$method == "CAVI", "CAVI",
+         sprintf("b=%d\nk=%.1f, t=%d", data$minibatch_size,
+                 data$exponent, as.integer(data$offset)))
+}
+
+plot_e3_screen_quality <- function(input_dir, figure_dir) {
+  results <- .paper_read_csv(
+    file.path(input_dir, "fit-results.csv"),
+    c("task_id", "method", "minibatch_size", "exponent", "offset",
+      "final_elbo", "mlpd", "ari", "cpe"))
+  comparison <- .paper_read_csv(
+    file.path(input_dir, "svi-comparison.csv"),
+    c("task_id", "delta_elbo", "delta_mlpd", "ari", "cpe", "mlpd"))
+  comparison <- comparison[order(-comparison$mlpd), , drop = FALSE]
+  source_rows <- match(comparison$task_id, results$task_id)
+  labels <- .e3_configuration_label(results[source_rows, , drop = FALSE])
+  reference <- results[results$method == "CAVI", , drop = FALSE]
+  colors <- grDevices::hcl.colors(nrow(comparison), "Oranges", rev = TRUE)
+  path <- file.path(figure_dir, "E3-screen-quality.png")
+  .paper_png(path, width = 2100, height = 1300)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mfrow = c(2, 2), mar = c(7, 4.5, 3, 1),
+                oma = c(0, 0, 4, 0))
+  draw <- function(values, title, ylab, reference_value = 0,
+                   lower_is_better = FALSE) {
+    positions <- graphics::barplot(
+      values, names.arg = labels, las = 2, col = colors, border = NA,
+      main = title, ylab = ylab)
+    graphics::abline(h = reference_value, lty = 2, lwd = 2,
+                     col = "#0072B2")
+    direction <- if (lower_is_better) "menor es mejor" else "mayor es mejor"
+    graphics::mtext(direction, side = 3, line = .2, cex = .75,
+                    col = "#555555")
+    invisible(positions)
+  }
+  draw(comparison$delta_elbo, "Brecha de ELBO",
+       "CAVI - SVI", 0, lower_is_better = TRUE)
+  draw(comparison$delta_mlpd, "Densidad predictiva retenida",
+       "SVI - CAVI", 0)
+  draw(comparison$ari, "Recuperación de partición", "ARI",
+       reference$ari[[1L]])
+  draw(comparison$cpe, "Error de coclustering", "CPE",
+       reference$cpe[[1L]], lower_is_better = TRUE)
+  graphics::mtext(
+    "E3 screen: sensibilidad preliminar; línea azul = referencia CAVI",
+    outer = TRUE, line = 1, font = 2)
+  path
+}
+
+plot_e3_screen_resources <- function(input_dir, figure_dir) {
+  data <- .paper_read_csv(
+    file.path(input_dir, "fit-results.csv"),
+    c("method", "minibatch_size", "exponent", "offset", "runtime",
+      "worker_wall_seconds", "measured_peak_rss_mb", "result_file_mb",
+      "mlpd"))
+  data <- data[order(data$method != "CAVI", -data$mlpd), , drop = FALSE]
+  labels <- .e3_configuration_label(data)
+  colors <- ifelse(data$method == "CAVI", "#0072B2", "#D55E00")
+  path <- file.path(figure_dir, "E3-screen-resources.png")
+  .paper_png(path, width = 2100, height = 1300)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mfrow = c(2, 2), mar = c(7, 4.5, 3, 1),
+                oma = c(0, 0, 4, 0))
+  panels <- list(
+    list(data$worker_wall_seconds, "Tiempo total por proceso", "Segundos"),
+    list(data$runtime, "Tiempo del ajuste", "Segundos"),
+    list(data$measured_peak_rss_mb, "Memoria máxima observada", "MiB RSS"),
+    list(data$result_file_mb, "Tamaño del artefacto", "MiB"))
+  for (panel in panels) graphics::barplot(
+    panel[[1L]], names.arg = labels, las = 2, col = colors, border = NA,
+    main = panel[[2L]], ylab = panel[[3L]])
+  graphics::mtext(
+    "E3 screen: perfil secuencial, un proceso y un ajuste a la vez",
+    outer = TRUE, line = 1, font = 2)
+  path
+}
+
+plot_e3_screen_convergence <- function(input_dir, figure_dir) {
+  results <- .paper_read_csv(
+    file.path(input_dir, "fit-results.csv"),
+    c("task_id", "method", "minibatch_size", "exponent", "offset",
+      "final_elbo", "path"))
+  reference <- results$final_elbo[results$method == "CAVI"]
+  svi <- results[results$method == "SVI", , drop = FALSE]
+  labels <- .e3_configuration_label(svi)
+  histories <- lapply(seq_len(nrow(svi)), function(index) {
+    artifact <- readRDS(file.path(input_dir, svi$path[[index]]))
+    artifact$fit$diagnostics$history
+  })
+  colors <- grDevices::hcl.colors(nrow(svi), "Dark 3")
+  gaps <- unlist(lapply(histories, function(history)
+    pmax(reference[[1L]] - history$smoothed_objective, .01)))
+  iterations <- unlist(lapply(histories, `[[`, "iteration"))
+  finite_gaps <- gaps[is.finite(gaps)]
+  if (!length(finite_gaps))
+    stop("E3 screen histories contain no finite smoothed objectives")
+  path <- file.path(figure_dir, "E3-screen-convergence.png")
+  .paper_png(path, width = 1900, height = 1100)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mar = c(5, 5, 4, 2))
+  graphics::plot(
+    range(iterations), range(finite_gaps), type = "n", log = "y",
+    xlab = "Iteración SVI", ylab = "CAVI ELBO - ELBO suavizado SVI (log)",
+    main = "E3 screen: trayectorias respecto a la referencia CAVI")
+  for (index in seq_along(histories)) {
+    history <- histories[[index]]
+    gap <- pmax(reference[[1L]] - history$smoothed_objective, .01)
+    graphics::lines(history$iteration, gap, col = colors[[index]], lwd = 2)
+    graphics::points(tail(history$iteration, 1L), tail(gap, 1L),
+                     col = colors[[index]], pch = 16)
+  }
+  graphics::abline(v = 1200, lty = 3, col = "#555555")
+  graphics::legend("bottomleft", inset = .015, legend = labels,
+                   col = colors, lwd = 2, bty = "o", bg = "white",
+                   ncol = 3, cex = .62)
+  graphics::mtext(
+    "Línea vertical: primera parada posible; estabilidad no garantiza buen óptimo",
+    side = 3, line = .3, cex = .8)
+  path
+}
+
+generate_e3_screen_figures <- function(
+    input_dir, figure_dir = file.path(input_dir, "figures")) {
+  builders <- list(
+    E3_screen_quality = plot_e3_screen_quality,
+    E3_screen_resources = plot_e3_screen_resources,
+    E3_screen_convergence = plot_e3_screen_convergence)
+  paths <- vapply(builders, function(builder) builder(input_dir, figure_dir),
+                  character(1L))
+  inputs <- c(
+    file.path(input_dir, "fit-results.csv"),
+    file.path(input_dir, "svi-comparison.csv"),
+    file.path(input_dir, "screen-review.csv"),
+    list.files(file.path(input_dir, "tasks"), pattern = "\\.rds$",
+               full.names = TRUE))
+  inputs <- inputs[file.exists(inputs) & !grepl("unmeasured", inputs, fixed = TRUE)]
+  input_fingerprint <- .paper_fingerprint(as.list(stats::setNames(
+    unname(tools::md5sum(inputs)), substring(inputs, nchar(input_dir) + 2L))))
+  manifest <- data.frame(
+    figure = names(paths), path = file.path("figures", basename(paths)),
+    input_fingerprint = input_fingerprint,
+    generated_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    profile = "pilot-screen", scientific_result = FALSE,
+    stringsAsFactors = FALSE)
+  utils::write.csv(manifest, file.path(figure_dir, "figure-manifest.csv"),
+                   row.names = FALSE)
+  manifest
+}

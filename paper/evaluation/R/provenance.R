@@ -50,9 +50,13 @@
     experiment_file <- if (experiment %in% paste0("E", 2:5))
       file.path(evaluation_root, "R", paste0(tolower(experiment), ".R")) else
       character()
-    task_worker <- if (identical(experiment, "E3"))
-      file.path(evaluation_root, "run-e3-screen-task.R") else character()
-    evaluation_files <- c(common, experiment_file, task_worker)
+    e3_execution <- if (identical(experiment, "E3")) c(
+      file.path(evaluation_root, "R", "e3-execution.R"),
+      file.path(evaluation_root, c(
+        "run-e3-preflight.R", "freeze-e3-preflight.R",
+        "review-e3-pilot-screen.R", "run-e3-pilot.R",
+        "run-e3-task.R"))) else character()
+    evaluation_files <- c(common, experiment_file, e3_execution)
   }
   files <- c(package_files, evaluation_files)
   files <- sort(unique(files[file.exists(files)]))

@@ -1,5 +1,6 @@
-# Execute the frozen 10-task E3 screen sequentially and measure each task in a
-# fresh R process. This script intentionally cannot run the 109-task factorial.
+# Execute one frozen E3 pilot stage sequentially, one task per fresh R process.
+# The factorial stage is unavailable until a passing screen review has been
+# explicitly accepted and embedded in its frozen configuration.
 .cli_value <- function(arguments, prefix, required = TRUE) {
   values <- arguments[startsWith(arguments, prefix)]
   if (!length(values)) {
@@ -7,19 +8,6 @@
     return(NULL)
   }
   sub(prefix, "", values[[1L]], fixed = TRUE)
-}
-
-.peak_rss_mb <- function(output, platform = Sys.info()[["sysname"]]) {
-  if (identical(platform, "Darwin")) {
-    line <- output[grepl("maximum resident set size", output, fixed = TRUE)]
-    if (!length(line)) return(NA_real_)
-    bytes <- suppressWarnings(as.numeric(sub("^\\s*([0-9]+).*$", "\\1", line[[1L]])))
-    return(bytes / 1024^2)
-  }
-  line <- output[grepl("Maximum resident set size", output, fixed = TRUE)]
-  if (!length(line)) return(NA_real_)
-  kilobytes <- suppressWarnings(as.numeric(sub("^.*:\\s*([0-9]+).*$", "\\1", line[[1L]])))
-  kilobytes / 1024
 }
 
 .atomic_write_csv <- function(value, path) {
@@ -35,40 +23,56 @@
 arguments <- commandArgs(trailingOnly = TRUE)
 if (!"--execute" %in% arguments)
   stop(paste(
-    "Pilot screen not started. Review/freeze the preflight, then pass",
-    "--execute and --accept-configuration-fingerprint=<md5:...>."))
+    "E3 pilot not started. Review/freeze its preflight, then pass --execute",
+    "and --accept-configuration-fingerprint=<md5:...>."))
+stage <- match.arg(.cli_value(arguments, "--stage="), c("screen", "factorial"))
 accepted <- .cli_value(arguments, "--accept-configuration-fingerprint=")
+accepted_screen <- .cli_value(
+  arguments, "--accept-screen-output-fingerprint=", required = FALSE)
 root <- normalizePath(".", mustWork = TRUE)
+Sys.setenv(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1",
+           MKL_NUM_THREADS = "1")
 preflight_dir <- file.path(
-  root, "paper", "evaluation", "output", "preflight", "E3", "pilot-screen")
+  root, "paper", "evaluation", "output", "preflight", "E3",
+  paste0("pilot-", stage))
 frozen_path <- file.path(preflight_dir, "frozen-configuration.rds")
 if (!file.exists(frozen_path))
-  stop("No frozen E3 screen exists. Run freeze_e3_configuration() first.")
+  stop("No frozen E3 ", stage, " configuration exists")
 
-# Source only enough suite code to validate the immutable candidate before any
-# installation or fit begins. Package code is loaded only from the isolated
-# installation used by each worker.
 for (file in c("scenarios.R", "metrics.R", "aggregation.R", "provenance.R",
-               "tasks.R", "e3.R"))
+               "tasks.R", "e3.R", "e3-execution.R"))
   source(file.path(root, "paper", "evaluation", "R", file))
 frozen <- readRDS(frozen_path)
-validate_e3_frozen_configuration(frozen, "screen")
+validate_e3_frozen_configuration(frozen, stage)
 if (!identical(accepted, frozen$configuration_fingerprint))
-  stop("Explicitly accepted fingerprint does not match the frozen screen")
+  stop("Explicitly accepted fingerprint does not match the frozen E3 stage")
+if (identical(stage, "factorial")) {
+  if (!is.character(accepted_screen) || length(accepted_screen) != 1L ||
+      !identical(accepted_screen,
+                 frozen$upstream_evidence$screen_output_fingerprint))
+    stop("Explicitly accepted screen fingerprint does not match factorial evidence")
+} else if (!is.null(accepted_screen)) {
+  stop("--accept-screen-output-fingerprint applies only to factorial")
+}
 
 summary_path <- file.path(preflight_dir, "budget-summary.csv")
 budget <- utils::read.csv(summary_path, stringsAsFactors = FALSE)
-output_dir <- file.path(root, "paper", "evaluation", "output", "pilot", "E3",
-                        "screen")
+output_dir <- file.path(
+  root, "paper", "evaluation", "output", "pilot", "E3", stage)
 dir.create(file.path(output_dir, "tasks"), recursive = TRUE, showWarnings = FALSE)
 disk <- system2("df", c("-Pk", shQuote(output_dir)), stdout = TRUE, stderr = TRUE)
 disk_fields <- strsplit(trimws(tail(disk, 1L)), "[[:space:]]+")[[1L]]
 available_mb <- suppressWarnings(as.numeric(disk_fields[[4L]]) / 1024)
-required_mb <- max(1024, 10 * budget$total_estimated_fit_storage_mb)
+projected_storage_mb <- if (identical(stage, "factorial"))
+  frozen$upstream_evidence$projected_factorial_storage_mb else
+    budget$total_estimated_fit_storage_mb
+required_mb <- max(1024, 2 * projected_storage_mb)
 if (!is.finite(available_mb) || available_mb < required_mb)
-  stop("Insufficient verified disk space for the E3 screen safety margin")
+  stop(sprintf(
+    "Insufficient disk: %.1f MiB available, %.1f MiB safety requirement",
+    available_mb, required_mb))
 
-validation_library <- tempfile("vb-hlrm-paper-e3-screen-library-")
+validation_library <- tempfile("vb-hlrm-paper-e3-pilot-library-")
 dir.create(validation_library, recursive = TRUE, showWarnings = FALSE)
 on.exit(unlink(validation_library, recursive = TRUE, force = TRUE), add = TRUE)
 install_log <- system2(
@@ -81,15 +85,20 @@ if (!is.null(install_status) && install_status != 0L)
   stop("Temporary package installation failed:\n", paste(install_log, collapse = "\n"))
 
 tasks <- frozen$configuration$tasks
-provenance <- paper_run_provenance("E3", "pilot-screen", frozen$configuration)
-worker <- file.path(root, "paper", "evaluation", "run-e3-screen-task.R")
+provenance <- paper_run_provenance(
+  "E3", paste0("pilot-", stage), frozen$configuration)
+worker <- file.path(root, "paper", "evaluation", "run-e3-task.R")
 time_binary <- "/usr/bin/time"
 if (!file.exists(time_binary))
   stop("/usr/bin/time is required for operating-system peak RSS measurement")
 time_flag <- if (identical(Sys.info()[["sysname"]], "Darwin")) "-l" else "-v"
+worker_environment <- c(
+  "OMP_NUM_THREADS=1", "OPENBLAS_NUM_THREADS=1", "MKL_NUM_THREADS=1")
 rows <- vector("list", nrow(tasks))
 for (index in seq_len(nrow(tasks))) {
   task <- tasks[index, , drop = FALSE]
+  cat(sprintf("[%d/%d] %s\n", index, nrow(tasks), task$task_id))
+  flush.console()
   result_path <- file.path(output_dir, "tasks", paste0(task$task_id, ".rds"))
   reused <- FALSE
   if (file.exists(result_path)) {
@@ -112,15 +121,15 @@ for (index in seq_len(nrow(tasks))) {
         paste0("--frozen=", shQuote(frozen_path)),
         paste0("--task-id=", shQuote(task$task_id)),
         paste0("--output=", shQuote(result_path))),
-      stdout = TRUE, stderr = TRUE)
+      stdout = TRUE, stderr = TRUE, env = worker_environment)
     worker_wall_seconds <- proc.time()[["elapsed"]] - started
     status <- attr(worker_output, "status")
     writeLines(worker_output, file.path(
       output_dir, "tasks", paste0(task$task_id, ".log")))
     if (!is.null(status) && status != 0L)
-      stop("E3 screen stopped after failed task ", task$task_id,
+      stop("E3 ", stage, " stopped after failed task ", task$task_id,
            "; inspect its log. Completed tasks remain reusable.")
-    peak_rss_mb <- .peak_rss_mb(worker_output)
+    peak_rss_mb <- .paper_peak_rss_mb(worker_output)
     if (!is.finite(peak_rss_mb))
       stop("Could not parse peak RSS for task ", task$task_id)
     result <- readRDS(result_path)
@@ -152,6 +161,7 @@ comparison <- .paper_annotate_manifest(
 .atomic_write_csv(manifest, file.path(output_dir, "fit-results.csv"))
 .atomic_write_csv(comparison, file.path(output_dir, "svi-comparison.csv"))
 write_paper_provenance(provenance, output_dir)
-cat("E3 pilot screen completed sequentially; these are profiling results, not\n",
-    "confirmatory evidence. Review timing/RSS before freezing the factorial.\n",
-    sep = "")
+cat("E3 pilot ", stage, " completed sequentially. These are ",
+    if (identical(stage, "screen")) "profiling" else "pilot",
+    " results, not confirmatory evidence.\n", sep = "")
+
