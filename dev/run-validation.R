@@ -7,9 +7,6 @@ Sys.setenv(VB_HLRM_ROOT = root)
 output_dir <- file.path(root, "tests", "output")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-source(file.path(root, "dev", "check-consumer-boundary.R"))
-boundary <- check_consumer_boundary(root)
-
 started <- Sys.time()
 results <- test_dir(file.path(root, "tests", "testthat"), reporter = "summary")
 finished <- Sys.time()
@@ -31,8 +28,6 @@ summary <- c(
   paste("Started:", format(started, tz = "UTC", usetz = TRUE)),
   paste("Finished:", format(finished, tz = "UTC", usetz = TRUE)),
   sprintf("Elapsed seconds: %.3f", as.numeric(difftime(finished, started, units = "secs"))),
-  paste("Consumer R files checked:", boundary$files_checked),
-  paste("Consumer boundary violations:", boundary$violations),
   paste("Test blocks:", nrow(details)),
   paste("Failed expectations:", count("failed")),
   paste("Errors:", count("error")),

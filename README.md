@@ -7,41 +7,26 @@ Implementación en R de modelos bayesianos de regresión lineal:
 - `CHLRM`: mezcla finita jerárquica para agrupar unidades con perfiles de regresión compartidos.
 
 Los tres modelos incluyen MCMC, CAVI y SVI. SVI usa minibatches de
-observaciones en LRM y de grupos completos en HLRM/CHLRM. El ejemplo aplicado usa los datos de
-árboles y fincas en `data/farm_trees.txt`.
+observaciones en LRM y de grupos completos en HLRM/CHLRM.
 
-El repositorio contiene dos productos: el paquete estadístico reutilizable y
-la evaluación del paper. El primero calcula; la segunda configura, ejecuta,
-persiste y reporta. La frontera normativa está en [ROADMAP.md](ROADMAP.md).
+Este repositorio contiene exclusivamente el paquete estadístico reusable. La
+tesis, los datos aplicados y la evaluación E1--E5 viven en el repositorio
+privado de investigación `VariationalBayes-HLRM-research`, que consume esta API
+sin copiar sus kernels.
 
 ## Estructura
 
 ```text
-R/                         implementación reutilizable de LRM, HLRM y CHLRM
-data/                      datos pequeños necesarios para reproducir análisis
-tests/                     pruebas automáticas del núcleo estadístico
-thesis/
-  v0/{code,latex,document} versión original autosuficiente
-  final/{code,latex,document} versión corregida y validaciones
-paper/
-  evaluation/              protocolo E1--E5, runners y reportes
-  manuscript/              artículo y respuesta a revisores
-  references/              manuscrito, revisión y fuentes metodológicas
+R/             implementación reusable de LRM, HLRM y CHLRM
+man/           referencia de la API
+tests/         pruebas automáticas del núcleo estadístico
+dev/           validación para desarrollo
+docs/          contrato de API y roadmap vigente
 ```
 
-La API pública vive en `R/`. El código histórico de V0 se conserva sólo para
-trazabilidad. Los análisis vigentes de la tesis están en
-`thesis/final/code/runs/`; las validaciones del artículo viven exclusivamente
-en `paper/evaluation/`. Ambos consumen la API del paquete y no sus kernels
-privados.
-
 El contrato estable de métodos y resultados está en
-[API_CONTRACT.md](API_CONTRACT.md). El trabajo pendiente se divide en
-[roadmap del paquete](PACKAGE_ROADMAP.md) y
-[plan de evaluación del paper](paper/EVALUATION_PLAN.md), coordinados por el
-[roadmap maestro](ROADMAP.md). Los análisis actuales bajo `thesis/final/code`
-son exploratorios; los resultados confirmatorios nuevos vivirán en
-`paper/evaluation/` y consumirán el paquete instalado.
+[contrato de la API](docs/API.md) y el trabajo pendiente se mantiene en un
+único [roadmap del paquete](docs/ROADMAP.md).
 
 ## Requisitos
 
@@ -59,21 +44,14 @@ Rscript -e 'install.packages(c("R6","mvtnorm","LaplacesDemon","gtools","posterio
 R CMD INSTALL .
 ```
 
-El proyecto todavía no fija versiones mediante `renv.lock`; esto está
-registrado como una mejora pendiente de reproducibilidad.
-
 ## Uso
 
-Ejecute los comandos desde la raíz del repositorio. También puede definir
-`VB_HLRM_ROOT` si invoca scripts desde otra ubicación.
+Ejecute los comandos desde la raíz del repositorio.
 
 ```sh
 Rscript dev/run-validation.R
 R CMD build .
 R CMD check --no-manual VariationalBayesHLRM_0.1.0.tar.gz
-VB_HLRM_THESIS_PROFILE=smoke Rscript thesis/final/code/run_all.R
-VB_HLRM_THESIS_PROFILE=smoke Rscript thesis/final/code/runs/04-svi-step-tuning/run.R
-VB_HLRM_THESIS_PROFILE=smoke Rscript thesis/final/code/runs/05-select-k-chlrm/run.R
 ```
 
 Cada ejecución escribe en su propio subdirectorio `output/`, ignorado por Git.
@@ -267,9 +245,9 @@ funciones especializadas `loglik_*` permanecen como kernels numéricos;
 `predictive_criteria()` y WAIC usan el contrato común para no confundir observaciones, grupos ni
 marginalización de variables latentes.
 
-Los valores exactos de la prior, la geometría, S1--S7c y la interpretación del
-test pertenecen a [paper/EVALUATION_PLAN.md](paper/EVALUATION_PLAN.md); no son
-defaults generales recomendados para usuarios del paquete.
+Los valores exactos de una prior experimental, geometría de simulación,
+escenarios y número de réplicas pertenecen al proyecto que consume el paquete;
+no son defaults generales recomendados para sus usuarios.
 
 ### Evaluación: responsabilidades separadas
 
@@ -420,12 +398,3 @@ independientes en los tres modelos.
   dejando fincas completas fuera sigue siendo una comprobación independiente.
 - DIC fue retirado; la comparación usa WAIC con unidad explícita, LOO/CV/LOGO
   y scoring predictivo fuera de muestra según corresponda.
-
-Véase [coherencia del modelo](thesis/final/code/MODEL_COHERENCE.md).
-
-## Tesis
-
-Los análisis reproducibles están documentados en
-[thesis/final/code/README.md](thesis/final/code/README.md). La fuente principal es
-`thesis/final/latex/EncabezadoTesisMSc.tex`; su compilación se describe en
-[thesis/final/latex/README.md](thesis/final/latex/README.md).

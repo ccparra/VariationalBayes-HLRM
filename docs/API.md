@@ -3,7 +3,7 @@
 ## Propósito
 
 Este documento define la interfaz pública reusable de LRM, HLRM y CHLRM. Es
-normativo para el código, las pruebas, la tesis y la evaluación del paper: un
+normativo para el código, las pruebas y cualquier proyecto consumidor: un
 análisis externo debe poder usar estas operaciones sin conocer kernels Gibbs,
 actualizaciones variacionales, nombres internos ni la estructura mutable de
 los objetos R6.
@@ -44,11 +44,11 @@ detalles internos.
 | Likelihood pointwise | permitir WAIC, CV, PSIS-LOO y auditoría avanzada | sí, avanzada |
 | Orquestación | multichain, multistart, checkpoint y reanudación | sí |
 | Kernels | pasos Gibbs, actualizaciones CAVI/SVI, álgebra auxiliar | no |
-| Protocolo del paper | escenarios, réplicas, tablas y figuras E1--E5 | no; consume la API |
+| Protocolo de investigación | escenarios, réplicas, tablas y figuras | no; consume la API |
 
-Que el paper necesite una capacidad no obliga a exportar su receta exacta. La
-API exporta el mecanismo general; `paper/evaluation/` fija sus argumentos y
-combina sus resultados.
+Que una evaluación necesite una capacidad no obliga a exportar su receta
+exacta. La API exporta el mecanismo general; el repositorio de investigación
+fija sus argumentos y combina sus resultados.
 
 ## Modelos y motores disponibles
 
@@ -575,9 +575,9 @@ empírico-Bayes; nunca será el default ni una opción denominada “no informat
 
 Los simuladores históricos y los helpers nombrados por el protocolo ya fueron
 retirados. El mecanismo general usa los tres DGP tipados y los valores exactos
-del PDF se construyen en `paper/evaluation/R/scenarios.R`. `hyperparams_*()`
-permanece sólo en los backends/consumidores aún no migrados y no formará parte
-del namespace público final.
+de cualquier protocolo se construyen en el proyecto consumidor.
+`hyperparams_*()` permanece sólo como detalle privado durante la consolidación
+de backends y no forma parte del namespace público.
 
 #### Contrato de simulación
 
@@ -985,8 +985,7 @@ usuario llama una operación explícita como `save_mcmc_checkpoint()`. No decide
 rutas, nombres, compresión, política de retención ni qué subconjunto debe
 persistirse.
 
-La suite del paper es responsable del manifiesto, la procedencia, los
+Cada proyecto consumidor es responsable del manifiesto, la procedencia, los
 checkpoints por tarea y la selección de objetos que necesita para recalcular
-sus métricas. Esas obligaciones están en
-[`paper/EVALUATION_PLAN.md`](paper/EVALUATION_PLAN.md), no forman parte del
-contrato público del paquete.
+sus métricas. Esas obligaciones no forman parte del contrato público del
+paquete.

@@ -67,30 +67,6 @@ r2 <- function(y, yhat) {
  return(1 - sse/sst)
 }
 
-project_root <- function(start = getwd()) {
-  configured <- Sys.getenv("VB_HLRM_ROOT", unset = "")
-  if (nzchar(configured)) return(normalizePath(configured, mustWork = TRUE))
-
-  current <- normalizePath(start, mustWork = TRUE)
-  repeat {
-    if (dir.exists(file.path(current, ".git")) &&
-        dir.exists(file.path(current, "R"))) return(current)
-    parent <- dirname(current)
-    if (identical(parent, current)) {
-      stop("Cannot locate the project root; set VB_HLRM_ROOT")
-    }
-    current <- parent
-  }
-}
-
-project_path <- function(...) file.path(project_root(), ...)
-
-project_dir <- function(...) {
-  path <- project_path(...)
-  dir.create(path, recursive = TRUE, showWarnings = FALSE)
-  normalizePath(path, mustWork = TRUE)
-}
-
 validate_grouped_data <- function(X, y, K = NULL) {
   if (!is.list(X) || !is.list(y) || !length(X) || length(X) != length(y)) {
     stop("X and y must be non-empty lists with the same number of groups")

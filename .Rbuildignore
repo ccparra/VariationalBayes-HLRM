@@ -1,13 +1,7 @@
 ^\.git$
 ^\.gitignore$
 ^\.Rbuildignore$
-^API_CONTRACT\.md$
-^DEVELOPMENT_DECISIONS\.md$
-^PACKAGE_ROADMAP\.md$
-^ROADMAP\.md$
-^data$
 ^dev$
-^paper$
-^thesis$
+^docs$
 ^tmp$
 ^tests/output$
