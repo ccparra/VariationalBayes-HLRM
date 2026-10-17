@@ -357,6 +357,32 @@ test_that("E3 factorial preflight carries passing screen evidence", {
   expect_identical(empirical, c("pass", "pass"))
 })
 
+test_that("E3 factorial aggregation preserves cells, seeds, and uncertainty", {
+  results <- expand_e3_tasks("pilot")
+  results$final_elbo <- -100 - seq_len(nrow(results)) / 100
+  results$mlpd <- -1 - seq_len(nrow(results)) / 1000
+  results$ari <- ifelse(results$method == "CAVI", .8, .6)
+  results$cpe <- ifelse(results$method == "CAVI", .1, .2)
+  results$runtime <- 2
+  results$iterations <- ifelse(results$method == "CAVI", 50L, 1200L)
+  results$convergence_status <- "converged"
+  results$result_file_mb <- 1.25
+  results$status <- "complete"
+  results$worker_wall_seconds <- 10
+  results$measured_peak_rss_mb <- 500
+  results$rss_measurement <- "test-rss"
+  results$output_fingerprint <- "md5:factorial"
+  results$git_commit <- "abc"
+  results$git_dirty <- FALSE
+  review <- summarize_e3_factorial(results)
+  expect_true(review$review$execution_valid)
+  expect_false(review$review$confirmatory_ready)
+  expect_equal(nrow(review$summary), 36)
+  expect_true(all(review$summary$runs == 3))
+  expect_true(all(review$summary$first_eligible_stop_fraction == 1))
+  expect_identical(sort(review$ranking$pilot_rank), 1:36)
+})
+
 test_that("E4 smoke uses paired nested datasets", {
   tasks <- expand_e4_tasks("smoke")
   expect_equal(nrow(tasks), 5)

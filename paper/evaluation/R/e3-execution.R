@@ -153,3 +153,105 @@ write_e3_screen_review <- function(screen_dir, factorial_task_count = 109L,
   kilobytes / 1024
 }
 
+summarize_e3_factorial <- function(results, first_eligible_svi_stop = 1200L) {
+  required <- c(
+    .e3_required_screen_columns, "seed_index", "status", "result_file_mb")
+  if (!is.data.frame(results) || !nrow(results))
+    stop("results must be a nonempty E3 factorial data frame")
+  missing <- setdiff(required, names(results))
+  if (length(missing))
+    stop("E3 factorial results are missing: ", paste(missing, collapse = ", "))
+  first_eligible_svi_stop <- .paper_positive_integer(
+    first_eligible_svi_stop, "first_eligible_svi_stop")
+  reference <- results[results$method == "CAVI", , drop = FALSE]
+  svi <- results[results$method == "SVI", , drop = FALSE]
+  keys <- c("minibatch_size", "exponent", "offset")
+  cell_id <- interaction(svi[keys], drop = TRUE, lex.order = TRUE)
+  cell_sizes <- table(cell_id)
+  shape_valid <- nrow(results) == 109L && nrow(reference) == 1L &&
+    nrow(svi) == 108L && length(cell_sizes) == 36L &&
+    all(cell_sizes == 3L) && anyDuplicated(results$task_id) == 0L
+  if (!shape_valid)
+    stop("E3 factorial must contain one CAVI and 36 SVI cells x 3 seeds")
+
+  svi$delta_elbo <- reference$final_elbo[[1L]] - svi$final_elbo
+  svi$delta_mlpd <- svi$mlpd - reference$mlpd[[1L]]
+  svi$delta_ari <- svi$ari - reference$ari[[1L]]
+  metrics <- c(
+    "final_elbo", "delta_elbo", "mlpd", "delta_mlpd", "ari",
+    "delta_ari", "cpe", "runtime", "worker_wall_seconds",
+    "measured_peak_rss_mb", "result_file_mb")
+  summarize_cell <- function(cell) {
+    row <- as.list(cell[1L, keys, drop = FALSE])
+    row$runs <- nrow(cell)
+    row$convergence_rate <- mean(cell$convergence_status == "converged")
+    row$first_eligible_stop_fraction <- mean(
+      cell$iterations == first_eligible_svi_stop)
+    row$zero_ari_rate <- mean(cell$ari == 0)
+    for (metric in metrics) {
+      values <- cell[[metric]]
+      row[[paste0(metric, "_mean")]] <- mean(values)
+      row[[paste0(metric, "_sd")]] <- stats::sd(values)
+      row[[paste0(metric, "_mcse")]] <- stats::sd(values) / sqrt(length(values))
+      row[[paste0(metric, "_min")]] <- min(values)
+      row[[paste0(metric, "_max")]] <- max(values)
+    }
+    as.data.frame(row, stringsAsFactors = FALSE)
+  }
+  cells <- split(svi, cell_id)
+  summary <- do.call(rbind, lapply(cells, summarize_cell))
+  rownames(summary) <- NULL
+  ranking <- summary[order(
+    -summary$mlpd_mean, summary$mlpd_sd, -summary$ari_mean,
+    summary$cpe_mean), , drop = FALSE]
+  ranking$pilot_rank <- seq_len(nrow(ranking))
+  execution_valid <- all(results$status %in% c("complete", "reused")) &&
+    all(results$convergence_status == "converged") &&
+    all(is.finite(results$worker_wall_seconds)) &&
+    all(is.finite(results$measured_peak_rss_mb)) &&
+    all(!is.na(results$git_dirty) & !results$git_dirty) &&
+    length(unique(results$git_commit)) == 1L &&
+    length(unique(results$output_fingerprint)) == 1L
+  review <- data.frame(
+    schema_version = "paper-e3-factorial-review-1",
+    task_count = nrow(results), svi_cell_count = nrow(summary),
+    seeds_per_cell = unique(cell_sizes)[[1L]],
+    converged_tasks = sum(results$convergence_status == "converged"),
+    first_eligible_stop_fraction = mean(
+      svi$iterations == first_eligible_svi_stop),
+    total_wall_seconds = sum(results$worker_wall_seconds),
+    maximum_rss_mb = max(results$measured_peak_rss_mb),
+    total_result_storage_mb = sum(results$result_file_mb),
+    output_fingerprint = unique(results$output_fingerprint)[[1L]],
+    git_commit = unique(results$git_commit)[[1L]],
+    execution_valid = execution_valid,
+    scientific_result = FALSE,
+    confirmatory_ready = FALSE,
+    stringsAsFactors = FALSE)
+  structure(list(
+    schema_version = "paper-e3-factorial-review-1",
+    review = review, summary = summary, ranking = ranking,
+    reference = reference),
+    class = c("paper_e3_factorial_review", "list"))
+}
+
+write_e3_factorial_review <- function(factorial_dir) {
+  results_path <- file.path(factorial_dir, "fit-results.csv")
+  if (!file.exists(results_path))
+    stop("factorial_dir does not contain fit-results.csv")
+  results <- utils::read.csv(results_path, stringsAsFactors = FALSE,
+                             check.names = FALSE)
+  review <- summarize_e3_factorial(results)
+  utils::write.csv(review$review,
+                   file.path(factorial_dir, "factorial-review.csv"),
+                   row.names = FALSE)
+  utils::write.csv(review$summary,
+                   file.path(factorial_dir, "factorial-summary.csv"),
+                   row.names = FALSE)
+  utils::write.csv(review$ranking,
+                   file.path(factorial_dir, "factorial-ranking.csv"),
+                   row.names = FALSE)
+  saveRDS(review, file.path(factorial_dir, "factorial-review.rds"), version = 3)
+  invisible(review)
+}
+

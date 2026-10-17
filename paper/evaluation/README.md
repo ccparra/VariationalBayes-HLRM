@@ -162,10 +162,16 @@ Rscript paper/evaluation/freeze-e3-preflight.R \
 Rscript paper/evaluation/run-e3-pilot.R --execute --stage=factorial \
   --accept-configuration-fingerprint=md5:HUELLA_FACTORIAL \
   --accept-screen-output-fingerprint=md5:HUELLA_SCREEN
+Rscript paper/evaluation/review-e3-pilot-factorial.R
+Rscript paper/evaluation/run-e3-factorial-figures.R
 ```
 
 El factorial piloto contiene 109 tareas. La configuración actual fuerza un
-solo thread BLAS/OpenMP/MKL y no inicia procesos concurrentes.
+solo thread BLAS/OpenMP/MKL y no inicia procesos concurrentes. Su revisión
+escribe agregados de las tres semillas para las 36 celdas, MCSE, dispersión,
+frecuencia de ARI igual a cero, ranking exploratorio y auditoría de recursos.
+Las figuras muestran mapas de MLPD/estabilidad, ARI/colapso y distribuciones de
+tiempo/RSS. Ni el ranking ni las figuras desbloquean automáticamente `full`.
 
 La suite puede escribir archivos y decidir su retención. El paquete sólo
 devuelve objetos serializables o escribe un checkpoint cuando se invoca una

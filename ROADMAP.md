@@ -147,20 +147,22 @@ el estimando, el algoritmo o el contrato consumido por el paper.
   `simulation-result-2`; los simuladores productivos anteriores fueron retirados.
 - La última validación del paquete ejecutó 150 bloques, sin fallos, errores,
   warnings ni skips. La validación rápida de infraestructura del paper ejecutó
-  otros 35 bloques sin incidencias; ninguno es un experimento confirmatorio.
+  otros 36 bloques sin incidencias; ninguno es un experimento confirmatorio.
 
 ### Decidido y especificado, pero todavía no implementado
 
-- ejecutar el factorial piloto E3: el `screen` de 10 tareas ya terminó y su
-  gate reproducible aprobó completitud, procedencia y margen de dos veces el
-  RSS máximo (496 MiB); proyecta 109 tareas secuenciales en 17.3 minutos y
-  143.9 MiB. El nuevo runner exige congelación y aceptación explícita de las
-  huellas del factorial y del `screen`;
+- habilitar y congelar la ejecución confirmatoria E3: `screen` y factorial piloto
+  terminaron 10/10 y 109/109. El factorial tomó 17.1 minutos, alcanzó 488.7 MiB
+  RSS y produjo 143.9 MiB; las 36 celdas ya tienen tres semillas, agregados y
+  mapas de MLPD, clustering, estabilidad y recursos. La regla de decisión ya
+  conserva las 36 celdas, fija ejecución secuencial y pospone la recomendación
+  hasta las 20 semillas; falta implementar la puerta específica de `full`;
 - decidir la interfaz opcional fórmula/datos; los métodos base, accesores
   jerárquicos y CHLRM, salidas tidy, extractores orientados para
   `loo`/`bayesplot` y la conversión al paquete `posterior` ya están
   implementados;
-- añadir vignettes y profiling empírico de RSS/tiempo antes del piloto.
+- añadir vignettes y extender el profiling empírico de RSS/tiempo a los demás
+  pilotos; E3 ya completó ambas etapas piloto.
 
 ### Pendiente para cerrar el paquete
 
@@ -215,9 +217,10 @@ fallos, errores, advertencias ni skips.
 convergencia multichain por defecto; CAVI/SVI usan CV refitted. Siguen métricas
 agregadas contra verdad y comparaciones entre métodos en la suite del paper,
 no en la API.
-En paralelo, el siguiente corte científico es congelar y ejecutar el factorial
-piloto E3, ya que el `screen` y su revisión de recursos están completos; sólo
-después se congelará E3 `full` y se ejecutarán los demás experimentos
-confirmatorios. La lista completa I0--I7 y sus
+En paralelo, el siguiente corte científico es implementar la puerta que vincula
+el factorial piloto aceptado y congelar E3 `full`; `screen`, factorial y regla
+de decisión ya están completos. Después se ejecutarán los demás experimentos
+confirmatorios.
+La lista completa I0--I7 y sus
 criterios de cierre vive sólo en `PACKAGE_ROADMAP.md` para no mantener dos
 planes operativos divergentes.

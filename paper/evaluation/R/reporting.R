@@ -376,3 +376,134 @@ generate_e3_screen_figures <- function(
                    row.names = FALSE)
   manifest
 }
+
+.paper_factorial_heatmap <- function(data, metric, title, digits = 3,
+                                     palette = "Viridis", reverse = FALSE) {
+  batches <- sort(unique(data$minibatch_size))
+  exponents <- sort(unique(data$exponent))
+  offsets <- sort(unique(data$offset))
+  values <- data[[metric]]
+  limits <- range(values, finite = TRUE)
+  colors <- grDevices::hcl.colors(100L, palette, rev = reverse)
+  color_index <- function(value) {
+    if (diff(limits) == 0) return(50L)
+    pmax(1L, pmin(100L, as.integer(
+      1 + 99 * (value - limits[[1L]]) / diff(limits))))
+  }
+  for (offset in offsets) {
+    subset <- data[data$offset == offset, , drop = FALSE]
+    graphics::plot(
+      c(.5, length(batches) + .5), c(.5, length(exponents) + .5),
+      type = "n", axes = FALSE, xlab = "Minibatch", ylab = "Exponente kappa",
+      main = paste0(title, " | tau = ", offset))
+    graphics::axis(1, at = seq_along(batches), labels = batches)
+    graphics::axis(2, at = seq_along(exponents), labels = exponents, las = 1)
+    graphics::box()
+    for (row in seq_len(nrow(subset))) {
+      x <- match(subset$minibatch_size[[row]], batches)
+      y <- match(subset$exponent[[row]], exponents)
+      value <- subset[[metric]][[row]]
+      fill <- colors[[color_index(value)]]
+      rgb <- grDevices::col2rgb(fill)
+      luminance <- .299 * rgb[[1L]] + .587 * rgb[[2L]] + .114 * rgb[[3L]]
+      graphics::rect(x - .5, y - .5, x + .5, y + .5,
+                     col = fill, border = "white", lwd = 2)
+      graphics::text(x, y, formatC(value, digits = digits, format = "f"),
+                     cex = .9, col = if (luminance < 145) "white" else "black")
+    }
+  }
+  invisible(limits)
+}
+
+plot_e3_factorial_predictive <- function(input_dir, figure_dir) {
+  data <- .paper_read_csv(
+    file.path(input_dir, "factorial-summary.csv"),
+    c("minibatch_size", "exponent", "offset", "mlpd_mean", "mlpd_sd"))
+  path <- file.path(figure_dir, "E3-factorial-predictive.png")
+  .paper_png(path, width = 2200, height = 1300)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mfrow = c(2, 3), mar = c(4, 4, 3, 1),
+                oma = c(0, 0, 4, 0))
+  .paper_factorial_heatmap(
+    data, "mlpd_mean", "MLPD promedio", digits = 4,
+    palette = "Viridis")
+  .paper_factorial_heatmap(
+    data, "mlpd_sd", "SD entre semillas",
+    digits = 4, palette = "Inferno")
+  graphics::mtext(
+    "E3 factorial piloto: MLPD (arriba, mayor mejor) y estabilidad (abajo, menor mejor)",
+    outer = TRUE, line = 1, font = 2)
+  path
+}
+
+plot_e3_factorial_clustering <- function(input_dir, figure_dir) {
+  data <- .paper_read_csv(
+    file.path(input_dir, "factorial-summary.csv"),
+    c("minibatch_size", "exponent", "offset", "ari_mean", "zero_ari_rate"))
+  path <- file.path(figure_dir, "E3-factorial-clustering.png")
+  .paper_png(path, width = 2200, height = 1300)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mfrow = c(2, 3), mar = c(4, 4, 3, 1),
+                oma = c(0, 0, 4, 0))
+  .paper_factorial_heatmap(
+    data, "ari_mean", "ARI promedio", digits = 3,
+    palette = "Viridis")
+  .paper_factorial_heatmap(
+    data, "zero_ari_rate", "Frecuencia ARI = 0",
+    digits = 2, palette = "Reds 3", reverse = TRUE)
+  graphics::mtext(
+    "E3 factorial piloto: clustering (arriba, mayor mejor) y colapso (abajo, menor mejor)",
+    outer = TRUE, line = 1, font = 2)
+  path
+}
+
+plot_e3_factorial_resources <- function(input_dir, figure_dir) {
+  data <- .paper_read_csv(
+    file.path(input_dir, "fit-results.csv"),
+    c("method", "minibatch_size", "runtime", "worker_wall_seconds",
+      "measured_peak_rss_mb", "result_file_mb"))
+  data <- data[data$method == "SVI", , drop = FALSE]
+  batch <- factor(data$minibatch_size, levels = sort(unique(data$minibatch_size)))
+  path <- file.path(figure_dir, "E3-factorial-resources.png")
+  .paper_png(path, width = 1900, height = 1200)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  graphics::par(mfrow = c(2, 2), mar = c(4, 4.5, 3, 1),
+                oma = c(0, 0, 4, 0))
+  panels <- list(
+    list(data$runtime, "Tiempo del ajuste", "Segundos"),
+    list(data$worker_wall_seconds, "Tiempo total del proceso", "Segundos"),
+    list(data$measured_peak_rss_mb, "RSS máximo", "MiB"),
+    list(data$result_file_mb, "Tamaño del resultado", "MiB"))
+  for (panel in panels) graphics::boxplot(
+    panel[[1L]] ~ batch, col = "#E69F00", border = "#7A4F00",
+    xlab = "Minibatch", ylab = panel[[3L]], main = panel[[2L]])
+  graphics::mtext(
+    "E3 factorial piloto: distribución de recursos en 108 corridas SVI",
+    outer = TRUE, line = 1, font = 2)
+  path
+}
+
+generate_e3_factorial_figures <- function(
+    input_dir, figure_dir = file.path(input_dir, "figures")) {
+  builders <- list(
+    E3_factorial_predictive = plot_e3_factorial_predictive,
+    E3_factorial_clustering = plot_e3_factorial_clustering,
+    E3_factorial_resources = plot_e3_factorial_resources)
+  paths <- vapply(builders, function(builder) builder(input_dir, figure_dir),
+                  character(1L))
+  inputs <- c(
+    file.path(input_dir, "fit-results.csv"),
+    file.path(input_dir, "factorial-summary.csv"),
+    file.path(input_dir, "factorial-review.csv"))
+  input_fingerprint <- .paper_fingerprint(as.list(stats::setNames(
+    unname(tools::md5sum(inputs)), substring(inputs, nchar(input_dir) + 2L))))
+  manifest <- data.frame(
+    figure = names(paths), path = file.path("figures", basename(paths)),
+    input_fingerprint = input_fingerprint,
+    generated_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    profile = "pilot-factorial", scientific_result = FALSE,
+    stringsAsFactors = FALSE)
+  utils::write.csv(manifest, file.path(figure_dir, "figure-manifest.csv"),
+                   row.names = FALSE)
+  manifest
+}

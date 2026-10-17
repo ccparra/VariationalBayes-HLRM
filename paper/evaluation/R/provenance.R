@@ -54,8 +54,8 @@
       file.path(evaluation_root, "R", "e3-execution.R"),
       file.path(evaluation_root, c(
         "run-e3-preflight.R", "freeze-e3-preflight.R",
-        "review-e3-pilot-screen.R", "run-e3-pilot.R",
-        "run-e3-task.R"))) else character()
+        "review-e3-pilot-screen.R", "review-e3-pilot-factorial.R",
+        "run-e3-pilot.R", "run-e3-task.R"))) else character()
     evaluation_files <- c(common, experiment_file, e3_execution)
   }
   files <- c(package_files, evaluation_files)
