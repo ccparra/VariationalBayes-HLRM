@@ -42,7 +42,6 @@ vignettes/*.pdf
 # Generated outputs live beside the run that creates them.
 **/output/*
 !**/output/.gitkeep
-thesis/final/code/run-output/
 
 # Regenerable binary objects and local archives
 *.rds
