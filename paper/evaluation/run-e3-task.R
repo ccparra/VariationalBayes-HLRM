@@ -19,6 +19,7 @@ task_id <- .cli_value(arguments, "--task-id=")
 output_path <- .cli_value(arguments, "--output=")
 .libPaths(c(library_path, .libPaths()))
 suppressPackageStartupMessages(library(VariationalBayesHLRM))
+source(file.path(root, "paper", "evaluation", "R", "project.R"))
 for (file in c("scenarios.R", "metrics.R", "aggregation.R", "provenance.R",
                "tasks.R", "e3.R", "e3-execution.R"))
   source(file.path(root, "paper", "evaluation", "R", file))

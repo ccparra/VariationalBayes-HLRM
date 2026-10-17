@@ -30,6 +30,7 @@ accepted <- .cli_value(arguments, "--accept-configuration-fingerprint=")
 accepted_screen <- .cli_value(
   arguments, "--accept-screen-output-fingerprint=", required = FALSE)
 root <- normalizePath(".", mustWork = TRUE)
+source(file.path(root, "paper", "evaluation", "R", "project.R"))
 Sys.setenv(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1",
            MKL_NUM_THREADS = "1")
 preflight_dir <- file.path(
@@ -73,16 +74,8 @@ if (!is.finite(available_mb) || available_mb < required_mb)
     available_mb, required_mb))
 
 validation_library <- tempfile("vb-hlrm-paper-e3-pilot-library-")
-dir.create(validation_library, recursive = TRUE, showWarnings = FALSE)
 on.exit(unlink(validation_library, recursive = TRUE, force = TRUE), add = TRUE)
-install_log <- system2(
-  file.path(R.home("bin"), "R"),
-  c("CMD", "INSTALL", "--no-multiarch",
-    paste0("--library=", shQuote(validation_library)), shQuote(root)),
-  stdout = TRUE, stderr = TRUE)
-install_status <- attr(install_log, "status")
-if (!is.null(install_status) && install_status != 0L)
-  stop("Temporary package installation failed:\n", paste(install_log, collapse = "\n"))
+install_paper_package(root, validation_library)
 
 tasks <- frozen$configuration$tasks
 provenance <- paper_run_provenance(

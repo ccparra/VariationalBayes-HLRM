@@ -34,9 +34,10 @@
 .paper_source_fingerprint <- function(root, experiment, scope = c("task", "suite")) {
   scope <- match.arg(scope)
   root <- normalizePath(root, mustWork = TRUE)
+  package_root <- paper_package_source(root)
   package_files <- c(
-    file.path(root, c("DESCRIPTION", "NAMESPACE")),
-    list.files(file.path(root, "R"), pattern = "\\.[Rr]$",
+    file.path(package_root, c("DESCRIPTION", "NAMESPACE")),
+    list.files(file.path(package_root, "R"), pattern = "\\.[Rr]$",
                recursive = TRUE, full.names = TRUE))
   evaluation_root <- file.path(root, "paper", "evaluation")
   if (scope == "suite") {
@@ -46,7 +47,7 @@
       list.files(evaluation_root, pattern = "\\.[Rr]$", full.names = TRUE))
   } else {
     common <- file.path(evaluation_root, "R", c(
-      "scenarios.R", "metrics.R", "provenance.R", "tasks.R"))
+      "project.R", "scenarios.R", "metrics.R", "provenance.R", "tasks.R"))
     experiment_file <- if (experiment %in% paste0("E", 2:5))
       file.path(evaluation_root, "R", paste0(tolower(experiment), ".R")) else
       character()
@@ -58,11 +59,19 @@
         "run-e3-pilot.R", "run-e3-task.R"))) else character()
     evaluation_files <- c(common, experiment_file, e3_execution)
   }
-  files <- c(package_files, evaluation_files)
-  files <- sort(unique(files[file.exists(files)]))
-  relative <- substring(files, nchar(root) + 2L)
-  hashes <- unname(tools::md5sum(files))
-  .paper_fingerprint(as.list(stats::setNames(hashes, relative)))
+  package_files <- sort(unique(package_files[file.exists(package_files)]))
+  evaluation_files <- sort(unique(
+    evaluation_files[file.exists(evaluation_files)]))
+  hashes <- c(
+    stats::setNames(
+      unname(tools::md5sum(package_files)),
+      paste0("package/", substring(
+        package_files, nchar(package_root) + 2L))),
+    stats::setNames(
+      unname(tools::md5sum(evaluation_files)),
+      paste0("research/", substring(
+        evaluation_files, nchar(root) + 2L))))
+  .paper_fingerprint(as.list(hashes))
 }
 
 .paper_git_value <- function(root, arguments) {
@@ -76,12 +85,15 @@
 }
 
 paper_run_provenance <- function(experiment, profile, configuration,
-                                 root = Sys.getenv("VB_HLRM_ROOT", unset = ".")) {
+                                 root = Sys.getenv(
+                                   "VB_HLRM_RESEARCH_ROOT",
+                                   unset = Sys.getenv("VB_HLRM_ROOT", unset = "."))) {
   if (!is.character(experiment) || length(experiment) != 1L || !nzchar(experiment))
     stop("experiment must be one nonempty string")
   if (!is.character(profile) || length(profile) != 1L || !nzchar(profile))
     stop("profile must be one nonempty string")
   root <- normalizePath(root, mustWork = TRUE)
+  package_root <- paper_package_source(root)
   configuration_fingerprint <- .paper_fingerprint(configuration)
   source_fingerprint <- .paper_source_fingerprint(
     root, experiment, scope = "task")
@@ -90,12 +102,23 @@ paper_run_provenance <- function(experiment, profile, configuration,
   package_version <- tryCatch(
     as.character(utils::packageVersion("VariationalBayesHLRM")),
     error = function(condition) {
-      description <- read.dcf(file.path(root, "DESCRIPTION"))
+      description <- read.dcf(file.path(package_root, "DESCRIPTION"))
       unname(description[1L, "Version"])
     })
-  git_commit <- .paper_git_value(root, c("rev-parse", "HEAD"))
-  git_status <- .paper_git_value(root, c("status", "--porcelain"))
-  git_dirty <- if (is.na(git_status)) NA else nzchar(git_status)
+  research_git_commit <- .paper_git_value(root, c("rev-parse", "HEAD"))
+  research_git_status <- .paper_git_value(
+    root, c("status", "--porcelain"))
+  research_git_dirty <- if (is.na(research_git_status)) NA else
+    nzchar(research_git_status)
+  package_git_commit <- .paper_git_value(
+    package_root, c("rev-parse", "HEAD"))
+  package_git_status <- .paper_git_value(
+    package_root, c("status", "--porcelain"))
+  package_git_dirty <- if (is.na(package_git_status)) NA else
+    nzchar(package_git_status)
+  git_commit <- research_git_commit
+  git_dirty <- if (is.na(research_git_dirty) || is.na(package_git_dirty))
+    NA else research_git_dirty || package_git_dirty
   run_fingerprint <- .paper_fingerprint(list(
     experiment = experiment, profile = profile,
     configuration = configuration_fingerprint,
@@ -112,6 +135,10 @@ paper_run_provenance <- function(experiment, profile, configuration,
     output_fingerprint = output_fingerprint,
     package_version = package_version,
     git_commit = git_commit, git_dirty = git_dirty,
+    research_git_commit = research_git_commit,
+    research_git_dirty = research_git_dirty,
+    package_git_commit = package_git_commit,
+    package_git_dirty = package_git_dirty,
     r_version = R.version.string, platform = R.version$platform,
     generated_at_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
     threads = list(
@@ -140,6 +167,10 @@ paper_run_provenance <- function(experiment, profile, configuration,
   manifest$package_version <- provenance$package_version
   manifest$git_commit <- provenance$git_commit
   manifest$git_dirty <- provenance$git_dirty
+  manifest$research_git_commit <- provenance$research_git_commit
+  manifest$research_git_dirty <- provenance$research_git_dirty
+  manifest$package_git_commit <- provenance$package_git_commit
+  manifest$package_git_dirty <- provenance$package_git_dirty
   manifest
 }
 
@@ -157,6 +188,10 @@ write_paper_provenance <- function(provenance, output_dir) {
     output_fingerprint = provenance$output_fingerprint,
     package_version = provenance$package_version,
     git_commit = provenance$git_commit, git_dirty = provenance$git_dirty,
+    research_git_commit = provenance$research_git_commit,
+    research_git_dirty = provenance$research_git_dirty,
+    package_git_commit = provenance$package_git_commit,
+    package_git_dirty = provenance$package_git_dirty,
     r_version = provenance$r_version, platform = provenance$platform,
     generated_at_utc = provenance$generated_at_utc,
     omp_threads = provenance$threads$omp,

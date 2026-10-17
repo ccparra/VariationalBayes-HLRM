@@ -1,5 +1,12 @@
 # Suite de evaluación del paper
 
+La suite es un proyecto de investigación separado del paquete. Localiza el
+checkout de `VariationalBayesHLRM` mediante `VB_HLRM_PACKAGE_SOURCE`; durante
+la migración también admite el antiguo monorepo y, por conveniencia, un
+checkout hermano llamado `VariationalBayes-HLRM`. Cada runner instala esa
+fuente en una biblioteca temporal y registra por separado los commits y el
+estado Git del paquete y de la investigación.
+
 Aquí vivirán los perfiles `smoke`, `pilot` y `full` y los experimentos E1--E5.
 Este directorio sólo puede contener:
 

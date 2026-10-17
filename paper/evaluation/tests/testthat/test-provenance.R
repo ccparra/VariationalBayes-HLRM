@@ -39,6 +39,18 @@ test_that("run provenance fingerprints package, suite and configuration", {
   expect_identical(first$run_fingerprint, second$run_fingerprint)
   expect_identical(first$output_fingerprint, second$output_fingerprint)
   expect_match(first$run_fingerprint, "^md5:[0-9a-f]{32}$")
+  expect_true(file.exists(file.path(paper_package_source(root), "DESCRIPTION")))
+  expect_true(is.character(first$research_git_commit))
+  expect_true(is.character(first$package_git_commit))
+})
+
+test_that("package source discovery supports a separate research checkout", {
+  discovered <- paper_package_source(root)
+  description <- read.dcf(file.path(discovered, "DESCRIPTION"),
+                          fields = "Package")
+  expect_identical(unname(description[1L, 1L]), "VariationalBayesHLRM")
+  expect_identical(
+    paper_package_source(root, explicit = discovered), discovered)
 })
 
 test_that("provenance is written and controls cache compatibility", {

@@ -1,4 +1,8 @@
-root <- normalizePath(Sys.getenv("VB_HLRM_ROOT"), mustWork = TRUE)
+root <- normalizePath(
+  Sys.getenv("VB_HLRM_RESEARCH_ROOT", unset = Sys.getenv("VB_HLRM_ROOT")),
+  mustWork = TRUE)
+source(file.path(root, "paper", "evaluation", "R", "project.R"))
+package_root <- paper_package_source(root)
 
 # The default runner installs the package in a temporary library. Developers
 # may still run individual tests against the source tree, but source loading
@@ -8,7 +12,7 @@ if (identical(Sys.getenv("VB_HLRM_USE_INSTALLED"), "true")) {
     "VariationalBayesHLRM", character.only = TRUE))
 } else {
   pkgload::load_all(
-    root, quiet = TRUE, export_all = FALSE, helpers = FALSE,
+    package_root, quiet = TRUE, export_all = FALSE, helpers = FALSE,
     attach_testthat = FALSE)
 }
 source(file.path(root, "paper", "evaluation", "R", "sbc.R"))
