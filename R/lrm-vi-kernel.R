@@ -1,18 +1,19 @@
 initialize_lrm_vi <- function(lrm_vi_object) {
-  # Hiperparámetros
+  # Prior parameters.
   Beta0   <- lrm_vi_object$hyperparams$Beta0
   Sigma0  <- lrm_vi_object$hyperparams$Sigma0
   nu0     <- lrm_vi_object$hyperparams$nu0
   sigma20 <- lrm_vi_object$hyperparams$sigma20
 
-  # q(Beta): inicializar con un draw desde la prior normal
+  # Initialize q(Beta) with a draw from the Gaussian prior.
   beta_draw <- as.numeric(
     mvtnorm::rmvnorm(1, mean = Beta0, sigma = Sigma0 + 1e-8 * diag(length(Beta0)))
   )
   lrm_vi_object$params$MuBeta    <- beta_draw
   lrm_vi_object$params$SigmaBeta <- Sigma0
 
-  # q(sigma^2): IG(a, b) con a = nu0/2, b = (nu0 * sigma20)/2 (shape–scale)
+  # q(sigma^2): IG(a, b), with a = nu0/2 and
+  # b = (nu0 * sigma20)/2 under the shape--scale convention.
   lrm_vi_object$params$asigma2 <- 0.5 * nu0
   lrm_vi_object$params$bsigma2 <- 0.5 * nu0 * sigma20
 

@@ -1,9 +1,9 @@
 initialize_hlrm_vi <- function(hlrm_vi_object) {
-  # tamaños
+  # Dimensions.
   p <- hlrm_vi_object$stats$p
   m <- hlrm_vi_object$stats$m
 
-  # hiperparámetros
+  # Prior parameters.
   Mu0     <- hlrm_vi_object$hyperparams$Mu0
   Lambda0 <- hlrm_vi_object$hyperparams$Lambda0
   n0      <- hlrm_vi_object$hyperparams$n0
@@ -14,20 +14,20 @@ initialize_hlrm_vi <- function(hlrm_vi_object) {
   B_ols   <- hlrm_vi_object$hyperparams$Betaj_ols
 
   # ---------------------------
-  # Inicialización local por grupo (j=1..m)
+  # Initialize the local state for each group.
   # ---------------------------
   # Local means are initialized independently of the prior definition. When
   # an explicit OLS initialization was requested, the adapter supplies B_ols;
   # otherwise use draws on the declared prior scale.
   hlrm_vi_object$params$MuBetaj <- if (is.null(B_ols))
     mvtnorm::rmvnorm(m, mean = Mu0, sigma = Lambda0) else B_ols
-  # Covarianzas q(β_j): arrancar con la misma Λ0 para todos
+  # Initialize every q(beta_j) covariance with Lambda0.
   Sigma0_draw <- LaplacesDemon::rinvwishart(nu = n0, S = S0)
   Sigma0_draw <- symmetrize_numeric(Sigma0_draw, "HLRM initial Sigma draw")
   hlrm_vi_object$params$SigmaBetaj <- replicate(m, Sigma0_draw, simplify = FALSE)
 
   # ---------------------------
-  # Globales: Beta y Sigma jerárquica
+  # Global coefficient and hierarchical covariance.
   # ---------------------------
   # q(Beta) ~ N(MuBeta, SigmaBeta)
   Sigma0_safe <- Lambda0 + 1e-8 * diag(p)
@@ -44,7 +44,7 @@ initialize_hlrm_vi <- function(hlrm_vi_object) {
   hlrm_vi_object$params$SS  <- S0
 
   # ---------------------------
-  # Varianzas por grupo y escala global ξ²
+  # Group residual variances and global scale xi^2.
   # ---------------------------
   # σ_j^2 | ξ^2 ~ IG(ν0/2, (ν0 ξ^2)/2)
   xi2_draw <- stats::rgamma(1, shape = a0, rate = b0)
@@ -52,7 +52,7 @@ initialize_hlrm_vi <- function(hlrm_vi_object) {
   hlrm_vi_object$params$aj <- rep(0.5 * nu0, m)
   hlrm_vi_object$params$bj <- rep(0.5 * nu0 * xi2_draw, m)
 
-  # q(ξ^2) ~ Gamma(axi2, bxi2): inicial en forma cerrada con E[σ_j^{-2}]
+  # Initialize q(xi^2) in closed form using E[sigma_j^-2].
   hlrm_vi_object$params$axi2 <- a0 + 0.5 * nu0 * m
   Einvs2_sum <- sum(expected_inverse_inverse_gamma(
     hlrm_vi_object$params$aj, hlrm_vi_object$params$bj))

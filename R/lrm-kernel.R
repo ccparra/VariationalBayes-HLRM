@@ -11,7 +11,7 @@ hyperparams_lrm <- function(data,
   if (!is.numeric(jitter) || length(jitter) != 1L || !is.finite(jitter) || jitter <= 0)
     stop("jitter must be a positive finite scalar")
 
-  # OLS con regularización mínima para estabilidad
+  # OLS with minimal regularization for numerical stability.
   XtX <- crossprod(X)
   Xty <- crossprod(X, y)
   ridge <- XtX + jitter * diag(p)

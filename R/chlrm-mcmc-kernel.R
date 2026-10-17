@@ -50,7 +50,7 @@ sample_allocations_chlrm <- function(chlrm_mcmc_object) {
   inv_sigma2k  <- 1 / sigma2k
 
   z  <- integer(m)
-  B  <- t(Betak)  # p×K (para multiplicaciones vectorizadas)
+  B  <- t(Betak)  # p x K for vectorized multiplication
 
   for (j in seq_len(m)) {
     XtXj <- XtX[[j]]      # p×p
@@ -60,7 +60,7 @@ sample_allocations_chlrm <- function(chlrm_mcmc_object) {
     # l_vec_k = β_k^T X_j^T y_j  (K×1)
     l_vec <- as.numeric(Betak %*% Xtyj)
 
-    # q_vec_k = β_k^T X_j^T X_j β_k para todos los k a la vez:
+    # Compute beta_k' X_j' X_j beta_k for every component at once.
     # M = XtXj %*% B (p×K); q_k = colSums(B * M)
     M     <- XtXj %*% B
     q_vec <- colSums(B * M)
@@ -71,7 +71,7 @@ sample_allocations_chlrm <- function(chlrm_mcmc_object) {
       0.5 * SSR_vec * inv_sigma2k
     log_post <- log(omega) + llk
 
-    # estabilidad numérica
+    # Numerical stabilization.
     log_post <- log_post - max(log_post)
     pk <- exp(log_post); pk <- pk / sum(pk)
 
@@ -140,7 +140,7 @@ sample_component_variances_chlrm <- function(chlrm_mcmc_object) {
   Xty <- chlrm_mcmc_object$stats$Xty    # lista p x 1
   yty <- chlrm_mcmc_object$stats$yty    #1x p
 
-  # Parámetros
+  # Current parameters.
   z     <- chlrm_mcmc_object$params$z
   Betak <- chlrm_mcmc_object$params$Betak
   xi2   <- chlrm_mcmc_object$params$xi2
@@ -167,7 +167,7 @@ sample_component_variances_chlrm <- function(chlrm_mcmc_object) {
       a_k <- 0.5 * (nu0 + n_k_obs)
       b_k <- 0.5 * (nu0 * xi2 + ssr_k)
     } else {
-      # sin grupos en el cluster: prior
+      # Empty component: draw from the prior.
       a_k <- 0.5 * nu0
       b_k <- 0.5 * nu0 * xi2
     }
@@ -197,11 +197,11 @@ sample_xi2_chlrm <- function(chlrm_mcmc_object){
 }
 
 sample_global_coefficients_chlrm <- function(chlrm_mcmc_object){
-  # Hiperparámetros
+  # Prior parameters.
   Mu0     <- chlrm_mcmc_object$hyperparams$Mu0      # μ0 (p)
   Lambda0 <- chlrm_mcmc_object$hyperparams$Lambda0  # Λ0 (p×p)
 
-  # Parámetros actuales
+  # Current parameters.
   Sigma <- chlrm_mcmc_object$params$Sigma           # Σ (p×p)
   Betak <- chlrm_mcmc_object$params$Betak           # matriz K×p
   K <- chlrm_mcmc_object$stats$K
@@ -223,11 +223,11 @@ sample_global_coefficients_chlrm <- function(chlrm_mcmc_object){
 }
 
 sample_global_covariance_chlrm <- function(chlrm_mcmc_object){
-  # Hiperparámetros
+  # Prior parameters.
   S0 <- chlrm_mcmc_object$hyperparams$S0   # p×p
   n0 <- chlrm_mcmc_object$hyperparams$n0
 
-  # Parámetros actuales
+  # Current parameters.
   Betak <- chlrm_mcmc_object$params$Betak  # K×p
   Beta  <- chlrm_mcmc_object$params$Beta   # p
   K <- chlrm_mcmc_object$stats$K
@@ -293,7 +293,7 @@ logprior_chlrm <- function(chlrm_mcmc_object) {
   lp_xi2 <- stats::dgamma(x = xi2, shape = a0, rate = b0, log = TRUE)
 
   # 6) ω ~ Dir(α0)
-  #    (usa forma cerrada para evitar dependencias)
+  # Use the closed form to avoid an additional dependency.
   lp_omega <- lgamma(sum(alpha0)) - sum(lgamma(alpha0)) +
     sum((alpha0 - 1) * log(omega))
 
@@ -303,12 +303,12 @@ logprior_chlrm <- function(chlrm_mcmc_object) {
   as.numeric(lp_betak + lp_beta + lp_Sigma + lp_s2k + lp_xi2 + lp_omega + lp_z)
 }
 incidence_matrix_mcmc_chlrm <- function(Z) {
-  # Z: S x m  (filas = draws, columnas = grupos)
+  # Z is S x m: rows are draws and columns are groups.
   S <- nrow(Z); n <- ncol(Z)
   A <- matrix(0, n, n)
   for (s in seq_len(S)) {
     labs <- Z[s, ]
-    A <- A + (outer(labs, labs, "==") * 1.0)  # co-clustering por draw
+    A <- A + (outer(labs, labs, "==") * 1.0)  # co-clustering for this draw
   }
   A <- A / S
   diag(A) <- 1

@@ -78,7 +78,7 @@ vi_lrm <- R6::R6Class("vi_lrm",
                                   n, size = min(minibatch_n, n),
                                   replace = FALSE)
                                 learning_rate <- step_size(
-                                  iter, tau = tau, kappa = kappa)
+                                  iter, offset = tau, exponent = kappa)
                               } else {
                                 B <- NULL
                                 learning_rate <- 1

@@ -154,7 +154,7 @@ test_that("SVI evaluates the full ELBO at configured spacing and final iteration
 test_that("stable utilities respect limiting cases and WAIC definition", {
   expect_equal(logmeanexp(c(-Inf, -Inf)), -Inf)
   expect_equal(logsumexp(numeric()), -Inf)
-  expect_true(is.na(r2(rep(1, 3), rep(1, 3))))
+  expect_true(is.na(coefficient_of_determination(rep(1, 3), rep(1, 3))))
   ll <- matrix(c(-1, -2, -1.5, -2.5, -0.5, -3), nrow = 2)
   w <- waic_from_loglik(ll)
   expect_equal(w$p_waic, sum(apply(ll, 1, var)))

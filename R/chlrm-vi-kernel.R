@@ -1,10 +1,10 @@
 initialize_chlrm_vi <- function(chlrm_vi_object, initialization = NULL) {
-  # tamaños
+  # Dimensions.
   p <- chlrm_vi_object$stats$p
   m <- chlrm_vi_object$stats$m
   K <- chlrm_vi_object$stats$K
 
-  # hiperparámetros
+  # Prior parameters.
   Mu0     <- chlrm_vi_object$hyperparams$Mu0
   Lambda0 <- chlrm_vi_object$hyperparams$Lambda0
   n0      <- chlrm_vi_object$hyperparams$n0
@@ -74,7 +74,6 @@ initialize_chlrm_vi <- function(chlrm_vi_object, initialization = NULL) {
 
   return(chlrm_vi_object)
 }
-
 .expected_sse_batch_chlrm <- function(stats, J, mu_k, Sig_k) {
   Xty <- stats$Xty_mat[J, , drop = FALSE]
   XtX <- stats$XtX_mat[, J, drop = FALSE]
@@ -216,7 +215,7 @@ update_q_mixture_weights_chlrm <- function(chlrm_vi_object, batch_idx = NULL,
 }
 
 # ================================================================
-# 5) q(β) global = N(MuBeta, SigmaBeta) con SVI
+# 5) Global q(beta) = N(MuBeta, SigmaBeta) under SVI.
 #    J_hat = Λ0^{-1} + K * E[Σ^{-1}]
 #    h_hat = Λ0^{-1} μ0 + E[Σ^{-1}] * Σ_k μ_k
 # ================================================================
@@ -256,7 +255,7 @@ update_q_global_coefficients_chlrm <- function(chlrm_vi_object,
 }
 
 # ================================================================
-# 6) q(Σ) = IW(nuS, SS) con SVI (guardamos (nuS, SS) tal que
+# 6) q(Sigma) = IW(nuS, SS) under SVI. Store (nuS, SS) so that
 #    E[Σ^{-1}] = nuS * solve_spd(SS))
 #    nu_hat = n0 + K
 #    SS_hat = S0 + Σ_k [ Σ_beta_k + Σ_beta + (μ_k - μ_beta)(μ_k - μ_beta)' ]
@@ -293,7 +292,7 @@ update_q_global_covariance_chlrm <- function(chlrm_vi_object,
 }
 
 # ================================================================
-# 7) q(ξ^2) = Gamma(a,b) (shape–rate) con SVI
+# 7) q(xi^2) = Gamma(a,b), using the shape--rate convention under SVI.
 #    a_hat = a0 + (K * ν0)/2
 #    b_hat = b0 + (ν0/2) * Σ_k E[σ_k^{-2}]
 # ================================================================
@@ -314,257 +313,4 @@ update_q_xi2_chlrm <- function(chlrm_vi_object, learning_rate = 1) {
   chlrm_vi_object$params$bxi2 <- (1 - learning_rate) *
     chlrm_vi_object$params$bxi2 + learning_rate * b_hat
   return(chlrm_vi_object)
-}
-
-
-elbo_chlrm <- function(chlrm_vi_object) {
-  # -----------------------------
-  # Stats y tamaños
-  # -----------------------------
-  X_list <- chlrm_vi_object$stats$X
-  y_list <- chlrm_vi_object$stats$y
-  XtX    <- chlrm_vi_object$stats$XtX
-  Xty    <- chlrm_vi_object$stats$Xty
-  yty    <- chlrm_vi_object$stats$yty
-  nj     <- chlrm_vi_object$stats$nj
-  m      <- chlrm_vi_object$stats$m
-  p      <- chlrm_vi_object$stats$p
-  K      <- chlrm_vi_object$stats$K
-
-  # -----------------------------
-  # Hiperparámetros
-  # -----------------------------
-  Mu0       <- chlrm_vi_object$hyperparams$Mu0
-  Lambda0   <- chlrm_vi_object$hyperparams$Lambda0
-  Lambda0inv <- if (!is.null(chlrm_vi_object$stats$Lambda0inv)) {
-    chlrm_vi_object$stats$Lambda0inv
-  } else solve_spd(Lambda0, name = "CHLRM Lambda0")
-  n0        <- chlrm_vi_object$hyperparams$n0
-  S0        <- chlrm_vi_object$hyperparams$S0
-  nu0       <- chlrm_vi_object$hyperparams$nu0
-  a0        <- chlrm_vi_object$hyperparams$a0
-  b0        <- chlrm_vi_object$hyperparams$b0
-  alpha0    <- chlrm_vi_object$hyperparams$alpha0   # Dirichlet prior (K)
-
-  # -----------------------------
-  # Parámetros variacionales
-  # -----------------------------
-  # Mezcla
-  rho    <- chlrm_vi_object$params$rho       # m x K
-  alpha  <- chlrm_vi_object$params$alpha     # K (Dirichlet)
-
-  # Clúster betas y varianzas
-  MuBetak     <- chlrm_vi_object$params$MuBetak      # K x p
-  SigmaBetak  <- chlrm_vi_object$params$SigmaBetak   # list K de p×p
-  ak          <- chlrm_vi_object$params$ak           # K (IG shape)
-  bk          <- chlrm_vi_object$params$bk           # K (IG scale)
-
-  # Global beta
-  MuBeta     <- chlrm_vi_object$params$MuBeta
-  SigmaBeta  <- chlrm_vi_object$params$SigmaBeta
-
-  # Global Sigma (IW) parametrizada por (nuS, SS) tal que
-  # E[Sigma^{-1}] = nuS * solve_spd(SS)
-  nuS        <- chlrm_vi_object$params$nuS
-  SS         <- chlrm_vi_object$params$SS
-
-  # Global xi^2 ~ Gamma(axi2, bxi2) (shape–rate)
-  axi2       <- chlrm_vi_object$params$axi2
-  bxi2       <- chlrm_vi_object$params$bxi2
-
-  # -----------------------------
-  # Expectativas útiles
-  # -----------------------------
-  Elog_sigma2_k <- expected_log_inverse_gamma(ak, bk)
-  Einv_sigma2_k <- expected_inverse_inverse_gamma(ak, bk)
-  ESigmainv     <- nuS * solve_spd(SS, name = "CHLRM variational IW scale")
-  ElogSigma     <- expected_logdet_inverse_wishart(nuS, SS)
-  Exi2          <- axi2 / bxi2
-  Elogxi2       <- digamma(axi2) - log(bxi2)
-  Elog_omega    <- expected_log_dirichlet(alpha)
-  logB_alpha0   <- lgamma(sum(alpha0)) - sum(lgamma(alpha0))  # const Dir prior
-  logB_alpha    <- lgamma(sum(alpha))  - sum(lgamma(alpha))   # const Dir var
-
-  # -----------------------------
-  # 1) Verosimilitud: E_q[ log p(y | z, beta_k, sigma_k^2) ]
-  #     = sum_j sum_k rho_jk [ -1/2 * n_j (log 2π + E log σ_k^2) - 1/2 * E σ_k^{-2} * SSE_{k,j} ]
-  # -----------------------------
-  Elogpy <- 0
-  all_groups <- seq_len(m)
-  for (k in seq_len(K)) {
-    sse_k <- .expected_sse_batch_chlrm(chlrm_vi_object$stats, all_groups,
-                              MuBetak[k, ], SigmaBetak[[k]])
-    contribution <- -0.5 * nj * (.log_2pi + Elog_sigma2_k[k]) -
-      0.5 * Einv_sigma2_k[k] * sse_k
-    Elogpy <- Elogpy + sum(rho[, k] * contribution)
-  }
-
-  # -----------------------------
-  # 2) Capa jerárquica: E_q[ log p(beta_k | Beta, Sigma) ]
-  #     = sum_k [ -1/2 ( p log 2π + E log|Σ| ) - 1/2 tr( E[Σ^{-1}] * M_k ) ]
-  #     donde M_k = Var_q(beta_k) + Var_q(Beta) + (E beta_k - E Beta)(...)
-  # -----------------------------
-  ElogpBetak <- 0
-  for (k in seq_len(K)) {
-    mu_k  <- MuBetak[k, ]
-    Sig_k <- SigmaBetak[[k]]
-    d_k   <- mu_k - MuBeta
-    Mk    <- Sig_k + SigmaBeta + tcrossprod(d_k)
-    ElogpBetak <- ElogpBetak + ( -0.5 * (p * .log_2pi + ElogSigma) - 0.5 * sum(diag(ESigmainv %*% Mk)) )
-  }
-
-  # -----------------------------
-  # 3) Prior global Beta: E_q[ log p(Beta) ]
-  #     = -1/2 ( p log 2π + log|Λ0| + tr(Λ0^{-1}(Σ_beta + (μ_beta-μ0)(...) )) )
-  # -----------------------------
-  dB <- MuBeta - Mu0
-  ElogpBeta <- -0.5 * ( p * .log_2pi + logdet_spd(Lambda0) +
-                          sum(diag(Lambda0inv %*% (SigmaBeta + tcrossprod(dB)))) )
-
-  # -----------------------------
-  # 4) Prior global Sigma ~ IW(n0, S0^{-1})
-  #     log C_IW + ...
-  # -----------------------------
-  logC_IW <- 0.5 * n0 * logdet_spd(S0) - 0.5 * n0 * p * log(2) - log_multigamma(0.5 * n0, p)
-  ElogpSigma <- logC_IW - 0.5 * (n0 + p + 1) * ElogSigma - 0.5 * sum(diag(S0 %*% ESigmainv))
-
-  # -----------------------------
-  # 5) Prior de σ_k^2 | ξ^2  (sin σ0^2):
-  #     α = ν0/2, β(ξ) = ν0 ξ^2 / 2
-  #     E_q[log p(σ_k^2 | ξ^2)] = α[log(ν0/2)+Elogξ^2] - lgamma(α)
-  #                              - (α+1) Elog σ_k^2 - (ν0/2) Eξ^2 * E σ_k^{-2}
-  # -----------------------------
-  alpha_ig <- 0.5 * nu0
-  Elogps2k <- 0
-  for (k in seq_len(K)) {
-    Elogps2k <- Elogps2k +
-      ( alpha_ig * (log(0.5 * nu0) + Elogxi2) - lgamma(alpha_ig) -
-          (alpha_ig + 1) * Elog_sigma2_k[k] - 0.5 * nu0 * Exi2 * Einv_sigma2_k[k] )
-  }
-
-  # -----------------------------
-  # 6) Prior de ξ^2 ~ Gamma(a0, b0) (shape–rate):
-  #     a0 log b0 - lgamma(a0) + (a0-1) Elogξ^2 - b0 Eξ^2
-  # -----------------------------
-  Elogpxi2 <- a0 * log(b0) - lgamma(a0) + (a0 - 1) * Elogxi2 - b0 * Exi2
-
-  # -----------------------------
-  # 7) Mezcla: E_q[ log p(z | ω) ] + E_q[ log p(ω) ]
-  # -----------------------------
-  # E[log p(z|ω)] = Σ_j Σ_k ρ_{jk} E[log ω_k]
-  Elogpz <- sum(drop(rho %*% Elog_omega))
-
-  # E[log p(ω)] = log B(α0) + Σ_k (α0_k - 1) E[log ω_k]
-  Elogpomega <- logB_alpha0 + sum( (alpha0 - 1) * Elog_omega )
-
-  # -----------------------------
-  # 8) Entropías (E_q[log q(·)])
-  # -----------------------------
-  # q(beta_k) normales
-  ElogqBetak <- 0
-  for (k in seq_len(K)) {
-    ElogqBetak <- ElogqBetak + ( -0.5 * ( p * (1 + .log_2pi) + logdet_spd(SigmaBetak[[k]]) ) )
-  }
-  # q(Beta) normal
-  ElogqBeta <- -0.5 * ( p * (1 + .log_2pi) + logdet_spd(SigmaBeta) )
-
-  # q(Sigma) inverse-Wishart: misma forma que prior con (nuS, SS)
-  logC_qIW  <- 0.5 * nuS * logdet_spd(SS) - 0.5 * nuS * p * log(2) - log_multigamma(0.5 * nuS, p)
-  ElogqSigma <- logC_qIW - 0.5 * (nuS + p + 1) * ElogSigma - 0.5 * sum(diag(SS %*% ESigmainv))
-
-  # q(σ_k^2) inverse-gamma (shape–scale): Σ_k [ a_k log b_k - lgamma(a_k) - (a_k+1) Elog σ_k^2 - b_k E σ_k^{-2} ]
-  Elogqs2k <- 0
-  for (k in seq_len(K)) {
-    Elogqs2k <- Elogqs2k + ( ak[k] * log(bk[k]) - lgamma(ak[k]) -
-                               (ak[k] + 1) * Elog_sigma2_k[k] - bk[k] * Einv_sigma2_k[k] )
-  }
-
-  # q(ξ^2) gamma (shape–rate): a log b - lgamma(a) + (a-1) Elogξ^2 - b Eξ^2
-  Elogqxi2 <- axi2 * log(bxi2) - lgamma(axi2) + (axi2 - 1) * Elogxi2 - bxi2 * Exi2
-
-  # q(z): Σ_j Σ_k ρ_{jk} log ρ_{jk}
-  Elogqz <- sum(rho * log(pmax(rho, .Machine$double.eps)))
-
-  # q(ω) Dirichlet: log B(α) + Σ_k (α_k - 1) E[log ω_k]
-  Elogqomega <- logB_alpha + sum( (alpha - 1) * Elog_omega )
-
-  # -----------------------------
-  # ELBO = Σ E_q[log p(·)]  -  Σ E_q[log q(·)]
-  # -----------------------------
-  Elogp_total <- Elogpy + ElogpBetak + ElogpBeta + ElogpSigma + Elogps2k + Elogpxi2 + Elogpz + Elogpomega
-  Elogq_total <- ElogqBetak + ElogqBeta + ElogqSigma + Elogqs2k + Elogqxi2 + Elogqz + Elogqomega
-
-  elbo <- Elogp_total - Elogq_total
-  return(as.numeric(elbo))
-}
-
-vi_sample_draws_chlrm <- function(chlrm_vi_object, results, S, seed = NULL,
-                                  include_allocations = TRUE) {
-  if (!is.numeric(S) || length(S) != 1L || !is.finite(S) ||
-      S < 1 || S != floor(S) || S > .Machine$integer.max)
-    stop("S must be a positive integer")
-  if (!is.logical(include_allocations) || length(include_allocations) != 1L ||
-      is.na(include_allocations)) stop("include_allocations must be TRUE or FALSE")
-  if (!is.null(seed)) set.seed(seed)
-
-  # Tamaños
-  m <- chlrm_vi_object$stats$m
-  p <- chlrm_vi_object$stats$p
-  K <- chlrm_vi_object$stats$K
-
-  # Acepta list(params=...) o list(...) plano
-  params <- if (!is.null(results$params)) results$params else results
-  if (!is.numeric(params$alpha) || length(params$alpha) != K ||
-      any(!is.finite(params$alpha)) || any(params$alpha <= 0))
-    stop("params$alpha must be a positive finite K-vector for q(omega)")
-
-  # Parámetros variacionales necesarios
-  MuBetak     <- params$MuBetak                 # K x p
-  SigmaBetak  <- lapply(params$SigmaBetak, as.matrix)  # list K de p x p
-  ak          <- as.numeric(params$ak)          # K
-  bk          <- as.numeric(params$bk)          # K
-  rho         <- params$rho                     # m x K  (responsabilidades por grupo)
-
-  # Helpers mínimos
-  .rcat <- function(prob) sample.int(length(prob), size = 1L, prob = prob)
-
-  # Prealocación
-  Betak_arr <- array(NA_real_, dim = c(S, K, p))  # S×K×p
-  s2k_mat   <- matrix(NA_real_, nrow = S, ncol = K)
-  if (include_allocations) {
-    z_mat     <- matrix(NA_integer_, nrow = m, ncol = S)  # m×S
-    Betaj     <- array(NA_real_, dim = c(S, m, p))        # S×m×p
-    s2j_mat   <- matrix(NA_real_, nrow = S, ncol = m)     # S×m
-  }
-
-  # Muestreo por clúster (independiente en s)
-  for (k in seq_len(K)) {
-    Betak_arr[, k, ] <- mvtnorm::rmvnorm(
-      n      = S,
-      mean   = MuBetak[k, ],
-      sigma  = SigmaBetak[[k]],
-      method = "chol"
-    )
-    # σ_k^2 ~ IG(a_k, b_k)  (shape–rate) ⇒ σ^2 = 1 / Gamma(a_k, rate=b_k)
-    s2k_mat[, k] <- 1 / stats::rgamma(n = S, shape = ak[k], rate = bk[k])
-  }
-
-  # Asignaciones por grupo con rho_j y parámetros inducidos
-  if (include_allocations) for (s in seq_len(S)) {
-    for (j in seq_len(m)) {
-      z_js <- .rcat(rho[j, ])       # z_j | y ~ Cat(rho_j)
-      z_mat[j, s] <- z_js
-      Betaj[s, j, ] <- Betak_arr[s, z_js, ]
-      s2j_mat[s, j] <- s2k_mat[s, z_js]
-    }
-  }
-
-  # Sample q(omega), not rho_j: these are population mixture weights.
-  # Appended after legacy sampling to preserve existing component/allocation draws.
-  out <- list(Betak = Betak_arr, sigma2k = s2k_mat,
-              omega = gtools::rdirichlet(S, params$alpha))
-  if (include_allocations) {
-    out <- c(list(Betaj = Betaj, sigma2j = s2j_mat, z = z_mat), out)
-  }
-  out
 }

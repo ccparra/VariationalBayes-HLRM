@@ -86,8 +86,9 @@ evaluate_in_sample_fit_gaussian <- function(y_list, X_list, point_beta,
     drop(X_list[[j]] %*% point_beta[j, ]))
   residuals <- Map(`-`, y_list, fitted)
   new_in_sample_fit_result(
-    model, method, mse(unlist(y_list), unlist(fitted)),
-    r2(unlist(y_list), unlist(fitted)),
+    model, method,
+    mean_squared_error(unlist(y_list), unlist(fitted)),
+    coefficient_of_determination(unlist(y_list), unlist(fitted)),
     metadata = list(groups = info$m, observations = sum(info$nj),
                     estimate = "posterior mean of the conditional response mean",
                     interpretation = "descriptive in-sample fit; not out-of-sample performance"),

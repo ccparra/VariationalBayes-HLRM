@@ -63,7 +63,7 @@ mcmc_chlrm <- R6::R6Class(
       }, add = TRUE)
 
       B <- n_samples_mcmc(self$run_settings)     # iter totales (incl. burn-in/thin)
-      S <- self$run_settings$samples             # muestras guardadas tras thinning
+      S <- self$run_settings$samples             # draws retained after thinning
 
       m <- self$chlrm_mcmc_object$stats$m
       p <- self$chlrm_mcmc_object$stats$p
@@ -72,7 +72,7 @@ mcmc_chlrm <- R6::R6Class(
       # Cadenas a almacenar
       Betaj     <- array(NA_real_, dim = c(S, m, p))  # S × m × p
       sigma2j   <- matrix(NA_real_, nrow = S, ncol = m)   # S × m
-      z_mat     <- matrix(NA_integer_, nrow = m, ncol = S) # m × S (grupos × draws)
+      z_mat     <- matrix(NA_integer_, nrow = m, ncol = S) # m x S (groups x draws)
       omega_mat <- matrix(NA_real_, nrow = S, ncol = K)    # S × K
       Betak_arr <- array(NA_real_, dim = c(S, K, p))       # S × K × p
       sigma2k_m <- matrix(NA_real_, nrow = S, ncol = K)    # S × K
@@ -134,7 +134,7 @@ mcmc_chlrm <- R6::R6Class(
       self$chains <- list(
         Betaj     = Betaj,       # S × m × p
         sigma2j   = sigma2j,     # S × m
-        z         = z_mat,       # m × S (grupos × draws)
+        z         = z_mat,       # m x S (groups x draws)
         omega     = omega_mat,   # S × K
         Betak     = Betak_arr,   # S × K × p
         sigma2k   = sigma2k_m,   # S × K

@@ -213,3 +213,26 @@ predictive_performance <- function(
     fit, predictive_target, level, observed,
     mean_prediction, response_prediction, score)
 }
+# Vehtari et al.'s variance form of WAIC. Rows are predictive units and
+# columns are posterior draws; grouping observations changes the estimand.
+waic_from_loglik <- function(log_lik) {
+  contract <- if (inherits(log_lik, "vb_log_likelihood")) log_lik else NULL
+  values <- as.matrix(log_lik)
+  if (!is.numeric(values) || !nrow(values) || any(!is.finite(values))) {
+    stop("WAIC requires a nonempty finite numeric log-likelihood matrix")
+  }
+  if (ncol(values) < 2L) {
+    stop("WAIC requires at least two posterior draws")
+  }
+  pointwise_lppd <- apply(values, 1L, logmeanexp)
+  pointwise_penalty <- apply(values, 1L, stats::var)
+  result <- summarize_waic_pointwise(data.frame(
+    lppd = pointwise_lppd,
+    p_waic = pointwise_penalty
+  ))
+  if (!is.null(contract)) {
+    result$estimand <- log_likelihood_estimand(contract)
+    result$predictive_units <- contract$predictive_units
+  }
+  result
+}

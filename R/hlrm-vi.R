@@ -90,8 +90,8 @@ vi_hlrm <- R6::R6Class("vi_hlrm",
                               if (stochastic) {
                                 size  <- min(minibatch_m, m)
                                 J     <- sample.int(m, size = size, replace = FALSE)
-                                learning_rate <- step_size(iter, tau = tau,
-                                                           kappa = kappa)
+                                learning_rate <- step_size(
+                                  iter, offset = tau, exponent = kappa)
                               } else {
                                 J     <- NULL
                                 learning_rate <- 1

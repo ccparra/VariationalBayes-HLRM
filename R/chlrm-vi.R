@@ -106,8 +106,8 @@ vi_chlrm <- R6::R6Class("vi_chlrm",
                              if (stochastic) {
                                size  <- min(minibatch_m, m)
                                J     <- sample.int(m, size = size, replace = FALSE)
-                               learning_rate <- step_size(iter, tau = tau,
-                                                          kappa = kappa)
+                               learning_rate <- step_size(
+                                 iter, offset = tau, exponent = kappa)
                              } else {
                                J     <- NULL
                                learning_rate <- 1
@@ -117,12 +117,12 @@ vi_chlrm <- R6::R6Class("vi_chlrm",
                              # 1) Responsabilidades locales q(z_j)
                              self$chlrm_vi_object <- update_q_allocations_chlrm(self$chlrm_vi_object, batch_idx = J)
 
-                             # 2) Bloques por clúster con paso SVI y minibatch J
+                             # 2) Component blocks using the SVI step and minibatch J.
                              self$chlrm_vi_object <- update_q_component_coefficients_chlrm(self$chlrm_vi_object, batch_idx = J, learning_rate = learning_rate)
                              self$chlrm_vi_object <- update_q_component_variances_chlrm(self$chlrm_vi_object, batch_idx = J, learning_rate = learning_rate)
                              self$chlrm_vi_object <- update_q_mixture_weights_chlrm(self$chlrm_vi_object, batch_idx = J, learning_rate = learning_rate)
 
-                             # 3) Globales (SVI en parámetros naturales, no dependen de J)
+                             # 3) Global natural-parameter updates, independent of J.
                              self$chlrm_vi_object <- update_q_global_coefficients_chlrm(self$chlrm_vi_object, learning_rate = learning_rate)
                              self$chlrm_vi_object <- update_q_global_covariance_chlrm(self$chlrm_vi_object, learning_rate = learning_rate)
                              self$chlrm_vi_object <- update_q_xi2_chlrm(self$chlrm_vi_object, learning_rate = learning_rate)
@@ -152,13 +152,13 @@ vi_chlrm <- R6::R6Class("vi_chlrm",
                            iter_time <- iter_time[eval_idx]
 
                            # --------------------------------------------
-                           # Save results (incluye parámetros clave CHLRM)
+                           # Save the complete CHLRM variational state.
                            # --------------------------------------------
                            self$results <- list(
-                             # mezcla
+                             # Mixture block.
                              rho    = self$chlrm_vi_object$params$rho,
                              alpha  = self$chlrm_vi_object$params$alpha,
-                             # clúster
+                             # Component block.
                              MuBetak    = self$chlrm_vi_object$params$MuBetak,
                              SigmaBetak = self$chlrm_vi_object$params$SigmaBetak,
                              ak         = self$chlrm_vi_object$params$ak,
@@ -221,7 +221,7 @@ vi_chlrm <- R6::R6Class("vi_chlrm",
                            if (isTRUE(relabel) && missing(label_reference))
                              label_reference <- self$label_reference
                            if (!isTRUE(relabel)) label_reference <- NULL
-                           # Tamaños
+                           # Dimensions.
                            K <- self$chlrm_vi_object$stats$K
                            p <- self$chlrm_vi_object$stats$p
                            m <- self$chlrm_vi_object$stats$m

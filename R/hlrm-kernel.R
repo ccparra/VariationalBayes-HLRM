@@ -12,7 +12,7 @@ hyperparams_hlrm <- function(data,
   if (!is.numeric(jitter) || length(jitter) != 1L || !is.finite(jitter) || jitter <= 0)
     stop("jitter must be a positive finite scalar")
 
-  # ----- OLS por grupo: Betas y varianzas residuales -----
+  # Group-specific OLS coefficients and residual variances.
   B_ols  <- matrix(NA_real_, m, p)
   s2_ols <- numeric(m)
 
@@ -27,7 +27,7 @@ hyperparams_hlrm <- function(data,
     s2_ols[j] <- mean(drop(rj)^2)
   }
 
-  # Estadísticos OLS para fijar priors tipo "OLS"
+  # OLS statistics used by the explicit OLS initialization strategy.
   Beta_ols  <- colMeans(B_ols)
   Sigma_ols <- if (m > 1L) stats::cov(B_ols) + jitter * diag(p) else
     max(s2_ols, jitter) * diag(p)

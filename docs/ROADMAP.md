@@ -70,7 +70,7 @@ only here; all public estimands and result schemas are explicit.
 
 ### M1 — Structural hygiene
 
-**Status:** in progress.
+**Status:** complete.
 
 - Preserve the idiomatic flat `R/` layout.
 - Remove the mixed-purpose `R/utils.R` by moving each helper to its owning
@@ -91,7 +91,7 @@ remains clean.
 
 ### M2 — API freeze and generated documentation
 
-**Status:** pending M1.
+**Status:** in progress.
 
 - Audit and freeze the public symbol manifest.
 - Preserve the current 65 exports and 29 S3 methods unless a separately

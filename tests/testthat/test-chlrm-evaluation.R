@@ -52,7 +52,8 @@ test_that("CHLRM evaluation responsibilities have independent schemas", {
   expect_identical(ppc$schema_version, "posterior-predictive-check-2")
   expect_identical(criteria$schema_version, "predictive-criteria-2")
   expect_equal(fit$statistics$mse,
-    mse(unlist(d$y), c(-1.5, -1.5, 2.5, 2.5, 2.5)))
+    mean_squared_error(
+      unlist(d$y), c(-1.5, -1.5, 2.5, 2.5, 2.5)))
   manual <- waic_from_loglik(log_likelihood(
     "CHLRM", d$y, d$X, d$draws,
     unit = "group", conditioning = "group_marginal"))

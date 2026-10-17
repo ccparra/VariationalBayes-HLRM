@@ -127,8 +127,9 @@ evaluate_in_sample_fit_chlrm <- function(y_list, X_list, draws, method,
   fitted <- fitted_mean_chlrm(X_list, draws, z, rho, component_mean)
   residuals <- Map(`-`, y_list, fitted)
   new_in_sample_fit_result(
-    "CHLRM", method, mse(unlist(y_list), unlist(fitted)),
-    r2(unlist(y_list), unlist(fitted)),
+    "CHLRM", method,
+    mean_squared_error(unlist(y_list), unlist(fitted)),
+    coefficient_of_determination(unlist(y_list), unlist(fitted)),
     metadata = list(groups = info$m, observations = sum(info$nj),
       estimate = "posterior mean conditional on observed-group allocations",
       interpretation = "descriptive in-sample fit; not new-group prediction"),

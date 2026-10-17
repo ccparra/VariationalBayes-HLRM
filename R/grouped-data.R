@@ -71,3 +71,33 @@ grouped_regression_data <- function(data, response, predictors, group,
       intercept = intercept)),
     class = c("vb_grouped_regression_data", "list"))
 }
+validate_grouped_data <- function(X, y, K = NULL) {
+  if (!is.list(X) || !is.list(y) || !length(X) || length(X) != length(y)) {
+    stop("X and y must be non-empty lists with the same number of groups")
+  }
+  coefficient_count <- ncol(as.matrix(X[[1L]]))
+  if (is.null(coefficient_count) || coefficient_count < 1L) {
+    stop("Each X[[j]] must be a matrix with at least one column")
+  }
+  for (group_index in seq_along(X)) {
+    group_design <- as.matrix(X[[group_index]])
+    group_response <- as.numeric(y[[group_index]])
+    if (ncol(group_design) != coefficient_count ||
+        nrow(group_design) != length(group_response) ||
+        !length(group_response)) {
+      stop(sprintf("Incompatible dimensions in group %d", group_index))
+    }
+    if (any(!is.finite(group_design)) || any(!is.finite(group_response))) {
+      stop(sprintf("Non-finite data in group %d", group_index))
+    }
+  }
+  if (!is.null(K) &&
+      (length(K) != 1L || !is.finite(K) || K < 1L || K != as.integer(K))) {
+    stop("K must be a positive integer")
+  }
+  invisible(list(
+    m = length(X),
+    p = coefficient_count,
+    nj = lengths(y)
+  ))
+}

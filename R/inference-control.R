@@ -58,7 +58,7 @@ restore_rng_snapshot <- function(state) {
 }
 
 # Caller must register on.exit(scope$restore(), add=TRUE) immediately.
-# With neither seed nor state, retain the legacy ambient-RNG behavior.
+# With neither seed nor state, use R's ambient RNG state.
 inference_rng_scope <- function(seed = NULL, state = NULL) {
   validate_rng_seed(seed)
   isolated <- !is.null(seed) || !is.null(state)
@@ -69,6 +69,14 @@ inference_rng_scope <- function(seed = NULL, state = NULL) {
     if (isolated) restore_rng_snapshot(previous)
     invisible(NULL)
   })
+}
+
+step_size <- function(iteration, offset = 10, exponent = 0.7) {
+  if (any(!is.finite(c(iteration, offset, exponent))) ||
+      any(iteration < 1) || offset < 0 || exponent <= 0.5 || exponent > 1) {
+    stop("Require iteration >= 1, offset >= 0 and 0.5 < exponent <= 1")
+  }
+  (iteration + offset)^(-exponent)
 }
 
 vi_stopping_control <- function(settings, m) {

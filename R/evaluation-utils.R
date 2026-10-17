@@ -193,3 +193,15 @@ summarize_waic_pointwise <- function(pointwise) {
        warning = if (any(penalty > .4))
          "Some predictive units have Var(log likelihood) > 0.4; inspect PSIS-LOO." else NULL)
 }
+mean_squared_error <- function(observed, predicted) {
+  mean((observed - predicted)^2)
+}
+
+coefficient_of_determination <- function(observed, predicted) {
+  observed <- as.numeric(observed)
+  predicted <- as.numeric(predicted)
+  residual_sum_squares <- sum((observed - predicted)^2)
+  total_sum_squares <- sum((observed - mean(observed))^2)
+  if (total_sum_squares == 0) return(NA_real_)
+  1 - residual_sum_squares / total_sum_squares
+}
