@@ -218,7 +218,12 @@ summarize_posterior <- function(fit, ...) {
 #' @rdname fitting-and-draws
 #' @export
 summarize_posterior.vb_model_fit <- function(fit, ...) {
-  result <- .invoke_fit_backend(fit, "summarize_posterior", list(...))
+  arguments <- list(...)
+  reference <- attr(fit, "label_reference", exact = TRUE)
+  if (fit$model == "CHLRM" && !is.null(reference) &&
+      !"label_reference" %in% names(arguments))
+    arguments$label_reference <- reference
+  result <- .invoke_fit_backend(fit, "summarize_posterior", arguments)
   if (!is.null(.fit_scaling_map(fit))) {
     result$parameters <- lapply(
       fit$parameters, .summarize_canonical_parameter,
@@ -326,7 +331,8 @@ fit_orchestration <- function(fit) {
       block_history = orchestration$block_history,
       estimated_storage_mb = orchestration$estimated_storage_mb)
     if (!is.null(orchestration$label_reference))
-      out$label_reference <- orchestration$label_reference
+      out$label_reference <- .reference_for_public_fit(
+        orchestration$label_reference, fit)
   } else if (inherits(orchestration, "vi_multistart_fit")) {
     out <- list(
       schema_version = "fit-orchestration-1",
@@ -337,7 +343,8 @@ fit_orchestration <- function(fit) {
       require_converged = orchestration$require_converged,
       estimated_storage_mb = orchestration$estimated_storage_mb)
     if (!is.null(orchestration$label_reference))
-      out$label_reference <- orchestration$label_reference
+      out$label_reference <- .reference_for_public_fit(
+        orchestration$label_reference, fit)
     if (fit$model == "CHLRM") {
       rows <- lapply(seq_along(orchestration$attempts), function(start) {
         attempt <- orchestration$attempts[[start]]
@@ -359,5 +366,7 @@ fit_orchestration <- function(fit) {
   } else {
     stop("Unknown orchestration object stored in fit")
   }
+  applied_reference <- attr(fit, "label_reference", exact = TRUE)
+  if (!is.null(applied_reference)) out$label_reference <- applied_reference
   structure(out, class = c("vb_fit_orchestration", "list"))
 }

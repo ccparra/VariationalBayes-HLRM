@@ -145,6 +145,16 @@ initialization specifications. K-means initialization is CHLRM-specific.
 Incompatible combinations fail explicitly. Initialization never changes the
 prior. Multiple chains or starts receive independent reproducible states.
 
+`variational_initialization_set()` materializes a versioned, serializable set
+of CAVI/SVI states from a model, dataset, prior, base initialization strategy,
+optional scaling specification, and required seed. Passing the same set as the
+`initialization` argument of separate CAVI and SVI calls guarantees identical
+starting variational factors. The `seed` supplied to each `fit_model()` call
+then controls optimization independently. The number of states must equal
+`control$starts`; model dimensions and the learned scaling map must match.
+Native state field names are implementation details and are not part of this
+public contract.
+
 ### Controls and convergence
 
 - `mcmc_control()` uses `mcmc_stopping()` and monitors rank-normalized R-hat,
@@ -432,12 +442,48 @@ Co-clustering probabilities and other permutation-invariant summaries remain
 valid without assigning semantic meaning to raw labels. LRM and HLRM do not
 expose mixture accessors.
 
+`relabel_fit(fit, reference)` applies a compatible reference obtained from
+`fit_orchestration()` and returns a new CHLRM fit. It consistently transforms
+canonical component parameters, latent allocations, posterior draws,
+summaries, and mixture accessors without mutating the source fit. References
+record their coordinate scale. A standardized-backend reference is accepted
+only when the fitted scaling maps are identical.
+
+## Built-in plots
+
+The package provides dependency-light base-R `plot()` methods for:
+
+- fitted-model convergence histories and coefficient intervals;
+- scalar posterior densities from `posterior_draws()`;
+- CHLRM allocation-probability heatmaps;
+- posterior predictions and their pointwise intervals;
+- posterior predictive discrepancy distributions;
+- pointwise log-likelihood summaries;
+- chain/start elapsed times from `fit_orchestration()`;
+- simulated response-versus-predictor views.
+
+Plot methods perform no inference and invisibly return the data used in the
+figure. Publication-specific layouts and multi-panel paper figures belong to
+the research repository.
+
 ## Robust execution and resource control
 
 `fit_orchestration()` returns a read-only audit of chains or starts without
 exposing mutable R6 backends. MCMC runs multiple chains sequentially to avoid
 automatic CPU/RAM oversubscription. CHLRM chains are aligned to a common label
 reference before joint diagnostics.
+
+Timing fields have deliberately narrow meanings. For a single fit,
+`fit$timing$total_seconds` is backend fitting time. For variational multistart
+it is the selected attempt's time; all attempt times, including `NA` for
+failures without a valid duration, are in
+`fit_orchestration(fit)$summary$elapsed_seconds`. For multichain MCMC it is the
+sum of per-chain compute times, also available in `chain_metadata`; because
+chains run sequentially, this is not declared to be process-level wall time.
+`update_seconds` and `objective_seconds` partition timed variational fitting
+work when available. Downstream prediction and assessment time, complete
+`fit_model()` call wall time, and operating-system process time are not stored
+and must be measured externally when an experiment requires them.
 
 `resume_mcmc()` returns a new continued fit and recalculates applicable
 diagnostics and CHLRM alignment. `save_mcmc_checkpoint()` and

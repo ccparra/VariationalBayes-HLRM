@@ -4,6 +4,8 @@
 #' initialization strategies. Priors and initial values remain separate so an
 #' OLS start never changes the Bayesian model.
 #'
+#' @param model A model specification created by `lrm_model()`, `hlrm_model()`,
+#'   or `chlrm_model()`.
 #' @param coefficient_count Number of regression coefficients, including an
 #'   explicit intercept when present.
 #' @param component_count Number of CHLRM mixture components.
@@ -22,12 +24,22 @@
 #' @param jitter Positive regularization used only to construct an OLS or
 #'   K-means initialization.
 #' @param values Complete semantic initial values for a model and engine.
+#' @param data Model data containing `X` and `y`.
+#' @param initialization A base initialization specification used to construct
+#'   every state in a reusable variational initialization set.
+#' @param starts Number of independently generated variational initial states.
+#' @param scaling Optional explicit data-scaling specification.
+#' @param seed Required seed for reproducible state generation.
 #' @return A validated typed specification, or a `prior-moments-1` object from
 #'   `prior_moments()`.
 #' @examples
 #' model <- lrm_model(2)
 #' prior <- lrm_prior(c(0, 0), 10 * diag(2), 4, 1)
 #' initialization <- initialization_ols()
+#' initialization_set <- variational_initialization_set(
+#'   model, list(X = diag(2), y = c(0, 1)), prior,
+#'   initialization, starts = 2, seed = 10
+#' )
 #' prior_moments(prior)
 #' @name model-specifications
 NULL
@@ -260,9 +272,14 @@ NULL
 #' LRM and HLRM fits are rejected rather than receiving null fields.
 #'
 #' @param fit A CHLRM `vb_model_fit`.
+#' @param reference A `chlrm_label_reference` obtained from
+#'   `fit_orchestration()` for a compatible CHLRM fit. Coordinate-scale
+#'   metadata and, when applicable, the fitted scaling map must match.
 #' @param ... Arguments forwarded to `summarize_posterior()` where applicable.
-#' @return Component summaries, a responsibility matrix, a classification data
-#'   frame, uncertainty data frame, or co-clustering matrix.
+#' @return `relabel_fit()` returns a new fit without modifying its input. Other
+#'   functions return component summaries, a responsibility matrix, a
+#'   classification data frame, uncertainty data frame, or co-clustering
+#'   matrix.
 #' @name chlrm-accessors
 NULL
 

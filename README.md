@@ -68,7 +68,13 @@ fit <- fit_model(
 summary(fit)
 coef(fit)
 predict(fit, X[1:3, , drop = FALSE], n_draws = 500, seed = 11)
-posterior_predict(fit, X[1:3, , drop = FALSE], n_draws = 500, seed = 12)
+prediction <- posterior_predict(
+  fit, X[1:3, , drop = FALSE], n_draws = 500, seed = 12
+)
+plot(fit, type = "convergence")
+plot(prediction)
+plot(posterior_draws(fit, n_draws = 500, seed = 13),
+     parameter = "coefficients")
 ```
 
 ## Public workflow
@@ -85,7 +91,9 @@ The main reusable operations are:
 - `predictive_criteria()`, `predictive_score()`, `predictive_performance()`,
   `cross_validate_model()`, and `psis_loo()` for predictive assessment;
 - CHLRM-specific accessors for components, responsibilities,
-  classification uncertainty, and co-clustering.
+  classification uncertainty, co-clustering, and pure fit relabeling;
+- base-R `plot()` methods for simulations, fit diagnostics, predictions,
+  posterior predictive checks, likelihoods, and orchestration timing.
 
 Common result contracts are shared where the mathematics agrees. Quantities
 that do not exist for a model are omitted rather than filled with placeholders.
@@ -99,7 +107,7 @@ Run from the repository root:
 ```sh
 Rscript dev/run-validation.R
 R CMD build .
-R CMD check --no-manual VariationalBayesHLRM_0.1.0.tar.gz
+R CMD check --no-manual VariationalBayesHLRM_0.2.0.tar.gz
 ```
 
 `tests/` contains fast deterministic regression tests for algebraic identities,

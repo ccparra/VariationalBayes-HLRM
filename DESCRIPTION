@@ -11,7 +11,8 @@ Description: Fits Gaussian linear regression, hierarchical linear regression,
     Monte Carlo, coordinate-ascent variational inference, or stochastic
     variational inference. Provides explicit prior and simulation contracts,
     posterior prediction, predictive scoring, cross-validation, posterior
-    predictive checks, and mixture relabeling.
+    predictive checks, dependency-light diagnostic plots, and mixture
+    relabeling.
 License: MIT + file LICENSE
 URL: https://github.com/ccparra/VariationalBayes-HLRM
 BugReports: https://github.com/ccparra/VariationalBayes-HLRM/issues

@@ -33,6 +33,7 @@ simulation <- simulate_data(
 
 truth <- tidy_truth(simulation)
 truth
+plot(simulation)
 
 prior <- lrm_prior(c(0, 0), 10 * diag(2), 4, 1)
 fit <- fit_model(
@@ -42,6 +43,7 @@ fit <- fit_model(
 )
 
 tidy_parameters(fit)
+plot(fit, type = "coefficients")
 ```
 
 `hierarchical_dgp()` redraws local or component parameters from population

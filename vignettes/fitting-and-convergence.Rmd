@@ -32,6 +32,10 @@ fit <- fit_model(
 fit
 fit$diagnostics$status
 coef(fit)
+plot(fit, type = "convergence")
+plot(fit, type = "coefficients")
+draws <- posterior_draws(fit, n_draws = 200, seed = 105)
+plot(draws, parameter = "coefficients")
 ```
 
 MCMC convergence is based on multiple-chain R-hat, ESS, and MCSE. CAVI uses

@@ -15,6 +15,12 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
   expected_method <- .canonical_public_method(method)
   if (!identical(control$method, expected_method))
     stop("control class does not match method")
+  initialization_set <- inherits(
+    initialization, "vb_variational_initialization_set")
+  if (initialization_set && method == "mcmc")
+    stop("variational initialization sets apply only to CAVI and SVI")
+  base_initialization <- if (initialization_set)
+    initialization$initialization else initialization
   input_validated <- .validate_fit_data(model, data)
   resource_estimate <- .estimate_fit_resources_validated(
     model, input_validated, control, data, scaling)
@@ -30,11 +36,14 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
     transform_data(data, scaling_map)
   working_prior <- if (is.null(scaling_map)) prior else
     transform_prior(prior, scaling_map)
-  working_initialization <- if (is.null(scaling_map)) initialization else
+  working_initialization <- if (is.null(scaling_map)) base_initialization else
     transform_initialization(
-      initialization, scaling_map, model$model, expected_method)
+      base_initialization, scaling_map, model$model, expected_method)
   validated <- .validate_fit_data(model, working_data)
   .validate_prior_for_model(working_prior, model, validated$dimensions)
+  supplied_initial_states <- if (initialization_set)
+    .validate_variational_initialization_set(
+      initialization, model, validated, control$starts, scaling_map) else NULL
   if (method == "svi") {
     sampling_units <- if (model$model == "LRM")
       validated$dimensions$n else validated$dimensions$m
@@ -42,24 +51,26 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
     if (control$minibatch_size > sampling_units)
       stop("minibatch_size cannot exceed the number of ", sampling_name)
   }
-  if (initialization$strategy == "kmeans" && model$model != "CHLRM")
+  if (working_initialization$strategy == "kmeans" && model$model != "CHLRM")
     stop("initialization_kmeans() applies only to CHLRM")
-  if (initialization$strategy == "ols" && model$model == "CHLRM")
+  if (working_initialization$strategy == "ols" && model$model == "CHLRM")
     stop("CHLRM requires initialization_kmeans() rather than an unclustered OLS state")
 
   grouped_ols <- NULL
   lrm_ols <- NULL
-  if (initialization$strategy %in% c("ols", "kmeans")) {
+  if (working_initialization$strategy %in% c("ols", "kmeans")) {
     if (model$model == "LRM")
-      lrm_ols <- .lrm_ols_initialization(validated, initialization$jitter)
+      lrm_ols <- .lrm_ols_initialization(
+        validated, working_initialization$jitter)
     else grouped_ols <- .group_ols_initialization(
-      validated, initialization$jitter)
+      validated, working_initialization$jitter)
   }
   native_prior <- .prior_to_native(
     working_prior, model, validated$dimensions, grouped_ols)
   native_control <- .control_to_native(control, seed)
   if (model$model == "CHLRM" && method != "mcmc") {
-    native_control$initialization <- if (initialization$strategy == "kmeans")
+    native_control$initialization <- if (
+      working_initialization$strategy == "kmeans")
       "kmeans_ols" else "random_responsibilities"
   }
 
@@ -115,17 +126,23 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
     convergence <- .multichain_convergence_result(orchestration, control)
   } else if (method != "mcmc" && control$starts > 1L) {
     if (is.null(seed)) stop("seed is required for reproducible multistart inference")
-    all_seeds <- derive_independent_seeds(2L * control$starts, seed)
-    initial_states <- .typed_vi_initial_states(
-      model, validated, native_prior, native_control, working_initialization,
-      expected_method, control$starts, all_seeds[seq_len(control$starts)],
-      lrm_ols, grouped_ols)
+    if (initialization_set) {
+      initial_states <- supplied_initial_states
+      fit_seeds <- derive_independent_seeds(control$starts, seed)
+    } else {
+      all_seeds <- derive_independent_seeds(2L * control$starts, seed)
+      initial_states <- .typed_vi_initial_states(
+        model, validated, native_prior, native_control, working_initialization,
+        expected_method, control$starts, all_seeds[seq_len(control$starts)],
+        lrm_ols, grouped_ols)
+      fit_seeds <- all_seeds[control$starts + seq_len(control$starts)]
+    }
     orchestration <- run_vi_multistart(
       model$model, expected_method,
       validated$y, validated$X, native_prior, native_control,
       K = if (model$model == "CHLRM") model$component_count else NULL,
       n_starts = control$starts,
-      fit_seeds = all_seeds[control$starts + seq_len(control$starts)],
+      fit_seeds = fit_seeds,
       initial_states = initial_states,
       require_converged = control$require_converged,
       max_memory_mb = control$max_memory_mb, verbose = verbose)
@@ -143,9 +160,14 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
   } else {
     backend <- .new_backend(
       model, method, validated, native_prior, native_control)
-    .apply_initialization(
-      backend, model$model, expected_method, working_initialization,
-      lrm_ols, grouped_ols, model$component_count)
+    if (initialization_set) {
+      .set_vi_state(
+        backend, model$model, supplied_initial_states$states[[1L]])
+    } else {
+      .apply_initialization(
+        backend, model$model, expected_method, working_initialization,
+        lrm_ols, grouped_ols, model$component_count)
+    }
     backend_result <- backend$fit(verbose = verbose)
     convergence <- if (method == "mcmc")
       .single_chain_convergence_result(control) else

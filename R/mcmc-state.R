@@ -351,13 +351,15 @@ resume_mcmc <- function(fit, additional_samples, seed = NULL,
       cumulative_seconds = numeric(), metadata = backend$fit_metadata)
     convergence <- .single_chain_convergence_result(control)
   }
-  .finalize_typed_fit(
+  result <- .finalize_typed_fit(
     backend_result, fit$specifications$model, fit$specifications$prior,
     fit$specifications$initialization, control, fit$metadata$seed, backend,
     convergence, orchestration,
     if (multichain) backends else NULL,
     fit$specifications$scaling,
     attr(fit, "scaling_map", exact = TRUE), estimate)
+  reference <- attr(fit, "label_reference", exact = TRUE)
+  if (is.null(reference)) result else relabel_fit(result, reference)
 }
 n_samples_mcmc <- function(run_settings) {
   if (!is.null(run_settings$thin)) {

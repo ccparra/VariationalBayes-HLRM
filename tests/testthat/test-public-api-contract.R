@@ -14,11 +14,12 @@ expected_exports <- c(
   "pp_check_from_prediction", "ppc_discrepancies", "predictive_criteria",
   "predictive_log_likelihood", "predictive_performance", "predictive_score",
   "prior_moments", "prior_predictive_dgp", "psis_loo",
-  "read_mcmc_checkpoint", "responsibilities", "resume_mcmc",
+  "read_mcmc_checkpoint", "relabel_fit", "responsibilities", "resume_mcmc",
   "save_mcmc_checkpoint", "scaling_map", "simulate_data",
   "simulation_design", "simulation_sample", "summarize_posterior",
   "svi_control", "svi_stopping", "tidy_parameters", "tidy_truth",
-  "transform_data", "transform_prior", "waic_from_loglik"
+  "transform_data", "transform_prior", "variational_initialization_set",
+  "waic_from_loglik"
 )
 
 expected_s3_methods <- c(
@@ -33,6 +34,10 @@ expected_s3_methods <- c(
   "population_parameters.vb_model_fit", "posterior_draws.vb_model_fit",
   "posterior_predict.vb_model_fit",
   "posterior_predictive_check.vb_model_fit", "predict.vb_model_fit",
+  "plot.vb_fit_orchestration", "plot.vb_log_likelihood",
+  "plot.vb_model_fit", "plot.vb_posterior_predictive_check",
+  "plot.vb_posterior_draws", "plot.vb_prediction_result",
+  "plot.vb_simulation_result",
   "predictive_criteria.vb_model_fit", "print.vb_fit_resource_estimate",
   "print.vb_model_fit", "residuals.vb_model_fit",
   "responsibilities.vb_model_fit", "summarize_posterior.vb_model_fit",

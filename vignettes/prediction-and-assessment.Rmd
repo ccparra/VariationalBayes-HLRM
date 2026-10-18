@@ -27,11 +27,13 @@ fit <- fit_model(
 )
 
 evaluate_in_sample_fit(fit)
-posterior_predictive_check(fit, n_draws = 100, seed = 303)
+check <- posterior_predictive_check(fit, n_draws = 100, seed = 303)
+plot(check)
 
 new_design <- X[c(1, 15, 30), , drop = FALSE]
 predict(fit, new_design, n_draws = 100, seed = 304)
-posterior_predict(fit, new_design, n_draws = 100, seed = 305)
+prediction <- posterior_predict(fit, new_design, n_draws = 100, seed = 305)
+plot(prediction)
 
 criteria <- predictive_criteria(
   fit, n_draws = 100, seed = 306,
@@ -39,6 +41,7 @@ criteria <- predictive_criteria(
 )
 criteria$criteria$waic
 dim(as_log_lik_matrix(criteria$log_likelihood$observation))
+plot(criteria$log_likelihood$observation)
 ```
 
 WAIC, PSIS-LOO, cross-validation, and held-out scores are comparable only when

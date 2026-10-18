@@ -47,14 +47,22 @@ fit <- fit_model(
   seed = 402, verbose = FALSE
 )
 
-components(fit)
-responsibilities(fit)
-classify_groups(fit)
-classification_uncertainty(fit)
-co_clustering(fit)
+reference <- fit_orchestration(fit)$label_reference
+aligned_fit <- relabel_fit(fit, reference)
+
+components(aligned_fit)
+responsibilities(aligned_fit)
+classify_groups(aligned_fit)
+classification_uncertainty(aligned_fit)
+co_clustering(aligned_fit)
+plot(aligned_fit, type = "responsibilities")
 ```
 
-Component summaries use the fitted relabeling reference. Classification
-uncertainty quantifies posterior ambiguity and should accompany hard labels.
-The co-clustering matrix answers whether pairs of groups belong to the same
-component and remains interpretable even when component names are arbitrary.
+`relabel_fit()` is a pure transformation: it leaves `fit` unchanged and applies
+the same reference to component parameters, latent allocations, posterior
+draws, summaries, and accessors. A reference can therefore be learned from a
+multichain MCMC fit and reused for CAVI and SVI fits with compatible dimensions
+and scaling coordinates. Classification uncertainty quantifies posterior
+ambiguity and should accompany hard labels. The co-clustering matrix answers
+whether pairs of groups belong to the same component and remains interpretable
+even when component names are arbitrary.
