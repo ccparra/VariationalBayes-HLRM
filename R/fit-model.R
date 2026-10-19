@@ -168,7 +168,11 @@ fit_model <- function(model, data, prior, method = c("mcmc", "cavi", "svi"),
         backend, model$model, expected_method, working_initialization,
         lrm_ols, grouped_ols, model$component_count)
     }
-    backend_result <- backend$fit(verbose = verbose)
+    # Supplied factors must not inherit randomness consumed by a discarded
+    # constructor initialization. Match the explicitly seeded multistart path.
+    backend_result <- if (initialization_set)
+      backend$fit(verbose = verbose, seed = seed) else
+      backend$fit(verbose = verbose)
     convergence <- if (method == "mcmc")
       .single_chain_convergence_result(control) else
       .vi_convergence_result(backend$diagnostics, control)

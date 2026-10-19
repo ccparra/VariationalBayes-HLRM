@@ -138,6 +138,15 @@ Fit a typed model, summarize only applicable parameters, extract consistently
 oriented draws, inspect orchestration provenance, and apply reversible data
 scaling.
 }
+\details{
+When \code{fit_model()} receives a reusable variational initialization set and
+an explicit \code{seed}, optimization starts from that seed independently of
+random draws used to construct a temporary backend initialization. This
+permits common optimization random streams across initialization strategies.
+Single-start SVI results under this contract differ from versions before
+0.2.1, which continued the constructor's random stream. Reproduce historical
+results with their original package version and source commit.
+}
 \examples{
 set.seed(1)
 X <- cbind(intercept = 1, predictor = seq(-1, 1, length.out = 20))

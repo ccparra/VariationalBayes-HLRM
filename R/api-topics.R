@@ -116,6 +116,14 @@ NULL
 #' @param ... Additional method arguments.
 #' @return A versioned fit, posterior summary/draws, orchestration audit, or
 #'   scaling object, depending on the operation.
+#' @details
+#' When `fit_model()` receives a reusable variational initialization set and
+#' an explicit `seed`, optimization starts from that seed independently of
+#' random draws used to construct a temporary backend initialization. This
+#' permits common optimization random streams across initialization strategies.
+#' Single-start SVI results under this contract differ from versions before
+#' 0.2.1, which continued the constructor's random stream. Reproduce historical
+#' results with their original package version and source commit.
 #' @examples
 #' set.seed(1)
 #' X <- cbind(intercept = 1, predictor = seq(-1, 1, length.out = 20))
