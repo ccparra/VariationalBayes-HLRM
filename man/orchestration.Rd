@@ -8,7 +8,7 @@
 \alias{resume_mcmc}
 \title{Checkpoint and resume typed MCMC fits}
 \usage{
-save_mcmc_checkpoint(fit, path)
+save_mcmc_checkpoint(fit, path, store = NULL, chunk_size = 5000L)
 
 read_mcmc_checkpoint(path)
 
@@ -18,6 +18,13 @@ resume_mcmc(fit, additional_samples, seed = NULL, verbose = FALSE)
 \item{fit}{An MCMC \code{vb_model_fit}.}
 
 \item{path}{A nonempty checkpoint path; saving refuses overwrite.}
+
+\item{store}{Optional object-store subdirectory within the checkpoint
+manifest's directory tree. \code{NULL} preserves the original self-contained RDS format.}
+
+\item{chunk_size}{Positive number of rows/draws per stored array block;
+CHLRM allocation matrices use their second (draw) dimension. All writes
+sharing a store must use the same chunk size.}
 
 \item{additional_samples}{Post-warmup draws to append to every chain.}
 
@@ -31,4 +38,30 @@ The normalized path invisibly, or a restored/continued fit.
 \description{
 Save plain serializable sampler state, reconstruct it, or continue every
 chain without repeating warm-up. Continuation returns a new fit.
+}
+\details{
+With \code{store = NULL}, saving uses the original self-contained checkpoint.
+Supplying \code{store} writes a small immutable manifest referencing compressed,
+checksum-addressed blocks. Unchanged complete blocks, attributes and metadata
+nodes are shared across checkpoint versions without assuming that an older
+prefix is unchanged. Raw and aligned histories, label permutations, terminal
+sampler parameters and each chain's RNG state are preserved exactly.
+
+Keep manifests and their entire store directory together when moving them.
+A manifest is not a standalone checkpoint. One writer per store is supported;
+readers can use previously published manifests during a write. Publication
+writes objects first and the manifest last. Interrupted writes may leave
+unreachable objects or a \code{.write-lock} directory. Existing manifests remain
+usable. Never remove a lock until its writer has stopped; inspect its \code{owner}
+file. There is no automatic deletion, compaction or garbage collection.
+
+Array chunks follow the first dimension except for CHLRM allocations, whose
+draw dimension is second. Complete blocks can be reused across extensions;
+changed alignment coordinates and partial tail blocks may require new data.
+Exact compressed-byte identity determines reuse; writer serialization/runtime
+changes can reduce sharing. Checksums detect changed files, not authenticity.
+Saving still constructs the full plain checkpoint and scans its history;
+reading reconstructs all retained state in memory. This is disk deduplication,
+not disk-streamed sampling, constant-time append or an RSS guarantee. Validate
+writer/reader RSS, file counts, runtime and storage on the intended workload.
 }

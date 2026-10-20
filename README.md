@@ -107,7 +107,7 @@ Run from the repository root:
 ```sh
 Rscript dev/run-validation.R
 R CMD build .
-R CMD check --no-manual VariationalBayesHLRM_0.2.2.tar.gz
+R CMD check --no-manual VariationalBayesHLRM_0.2.3.tar.gz
 ```
 
 `tests/` contains fast deterministic regression tests for algebraic identities,

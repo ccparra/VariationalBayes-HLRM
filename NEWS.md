@@ -1,3 +1,18 @@
+# VariationalBayesHLRM 0.2.3
+
+- `save_mcmc_checkpoint()` accepts an optional immutable object `store` and
+  `chunk_size`. Identical compressed blocks and metadata nodes are shared
+  across complete checkpoint manifests; `read_mcmc_checkpoint()` restores both
+  the original single-file format and the new store format without recomputing
+  alignment, diagnostics or sampler state. Default serialization is unchanged.
+- Stores validate object checksums, serialize writers with a lock and publish
+  manifests last. They preserve all raw/aligned histories and RNG states but
+  still build and restore full in-memory checkpoints; no RSS reduction or
+  large-workload resource safety is claimed.
+- Checkpoint reconstruction now restores the original complete `run_settings`,
+  including its seed provenance, after using seed-free constructor settings.
+  Continuation still uses the saved terminal RNG state.
+
 # VariationalBayesHLRM 0.2.2
 
 - `posterior_draws()` and `posterior::as_draws()` now accept exact ordered

@@ -42,6 +42,9 @@
     CHLRM = mcmc_chlrm$new(stats$y, stats$X, stats$K,
                            sampler$hyperparams, settings))
   fit[[.mcmc_object_name(model)]] <- .clone_mcmc_state(sampler)
+  # Construction must not reseed, but the saved provenance settings must not
+  # lose their original seed after the temporary constructor settings are used.
+  fit$run_settings <- .clone_mcmc_state(checkpoint$run_settings)
   fit$chains <- .clone_mcmc_state(checkpoint$chains)
   fit$rng_state <- .clone_mcmc_state(checkpoint$rng_state)
   fit$fit_metadata <- .clone_mcmc_state(checkpoint$fit_metadata)
@@ -107,13 +110,15 @@
 # on read and are never serialized as part of the public artifact.
 #' @rdname orchestration
 #' @export
-save_mcmc_checkpoint <- function(fit, path) {
+save_mcmc_checkpoint <- function(fit, path, store = NULL, chunk_size = 5000L) {
   if (!is.character(path) || length(path) != 1L || !nzchar(path))
     stop("path must be one nonempty file path")
   if (file.exists(path))
     stop("Checkpoint path already exists; use a new versioned path")
   directory <- dirname(path)
   if (!dir.exists(directory)) dir.create(directory, recursive = TRUE)
+  if (!is.null(store))
+    return(.save_mcmc_checkpoint_store(fit, path, store, chunk_size))
   temporary <- tempfile(pattern = ".mcmc-checkpoint-", tmpdir = directory,
                         fileext = ".rds")
   on.exit(if (file.exists(temporary)) unlink(temporary), add = TRUE)
@@ -130,6 +135,8 @@ read_mcmc_checkpoint <- function(path) {
     stop("path must be one nonempty file path")
   if (!file.exists(path)) stop("Checkpoint file does not exist")
   checkpoint <- readRDS(path)
+  if (inherits(checkpoint, "vb_mcmc_store_checkpoint"))
+    checkpoint <- .read_mcmc_checkpoint_store(checkpoint, path)
   .validate_typed_mcmc_checkpoint(checkpoint)
   fit <- checkpoint$fit
   summary_backend <- .restore_mcmc_backend_checkpoint(
