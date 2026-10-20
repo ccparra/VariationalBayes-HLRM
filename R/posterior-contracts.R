@@ -271,11 +271,14 @@ new_posterior_summary_result <- function(model, method, parameters,
 }
 
 new_posterior_draws_result <- function(fit, sampled, draw_index, seed,
-                                       estimated_storage_mb) {
+                                       estimated_storage_mb,
+                                       parameter_names = parameter_names_for_model(fit$model)) {
   if (!inherits(fit, "vb_model_fit"))
     stop("fit must be produced by fit_model()")
   if (!is.list(sampled) || !is.list(sampled$parameters) ||
-      !identical(names(sampled$parameters), parameter_names_for_model(fit$model)))
+      !identical(as.character(names(sampled$parameters)), parameter_names) ||
+      !identical(parameter_names, parameter_names_for_model(fit$model)[
+        parameter_names_for_model(fit$model) %in% parameter_names]))
     stop("posterior draws must match the parameters of the selected model")
   if (!is.data.frame(draw_index) || !nrow(draw_index))
     stop("draw_index must be a nonempty data frame")
@@ -292,6 +295,10 @@ new_posterior_draws_result <- function(fit, sampled, draw_index, seed,
       estimated_storage_mb = estimated_storage_mb))
   if (!is.null(sampled$latent_variables))
     out$latent_variables <- sampled$latent_variables
+  if (!identical(parameter_names, parameter_names_for_model(fit$model))) {
+    out$schema_version <- "posterior-draws-2"
+    out$metadata$parameter_selection <- parameter_names
+  }
   structure(out, class = c("vb_posterior_draws", "list"))
 }
 

@@ -60,7 +60,9 @@ posterior_draws(
   n_draws = NULL,
   seed = NULL,
   include_latent = FALSE,
-  max_output_mb = 256
+  max_output_mb = 256,
+  draw_indices = NULL,
+  parameters = NULL
 )
 
 \method{posterior_draws}{vb_model_fit}(
@@ -68,7 +70,9 @@ posterior_draws(
   n_draws = NULL,
   seed = NULL,
   include_latent = FALSE,
-  max_output_mb = 256
+  max_output_mb = 256,
+  draw_indices = NULL,
+  parameters = NULL
 )
 
 \method{as_draws}{vb_posterior_draws}(x, include_latent = FALSE, ...)
@@ -79,6 +83,8 @@ posterior_draws(
   seed = NULL,
   include_latent = FALSE,
   max_output_mb = 256,
+  draw_indices = NULL,
+  parameters = NULL,
   ...
 )
 }
@@ -127,6 +133,15 @@ constant columns.}
 
 \item{max_output_mb}{Allocation budget for materialized draws.}
 
+\item{draw_indices}{Optional strictly increasing positive indices into the
+combined stored MCMC draws, mutually exclusive with \code{n_draws}. These select
+exact draws without random subsampling. Not available for CAVI/SVI.}
+
+\item{parameters}{Optional unique MCMC parameter block names. Blocks are
+returned in canonical model order. \code{NULL} returns every parameter;
+\code{character()} with \code{include_latent = TRUE} returns only CHLRM allocations.
+Not available for CAVI/SVI.}
+
 \item{x}{A fitted model or posterior-draw object.}
 }
 \value{
@@ -146,6 +161,21 @@ permits common optimization random streams across initialization strategies.
 Single-start SVI results under this contract differ from versions before
 0.2.1, which continued the constructor's random stream. Reproduce historical
 results with their original package version and source commit.
+
+For MCMC, consecutive \code{draw_indices} requests can extract a complete trace
+in bounded output blocks. Each result retains the original \code{stored_draw},
+\code{chain}, and \code{iteration} in \code{draw_index}; its local \code{draw} starts at one.
+Indices address the combined stored order, not an individual chain's
+iteration. Explicit indices consume no random draws. Omitting selectors
+preserves the existing extraction and variational sampling behavior.
+Parameter subsets use schema \code{posterior-draws-2} and record
+\code{metadata$parameter_selection}; complete parameter results retain schema
+\code{posterior-draws-1}. Latent-only objects require \code{include_latent = TRUE} when
+converted with \code{posterior::as_draws()} and have no parameter density plot.
+The output budget accounts for selected blocks before extraction. It is
+not a bound on process RSS: the fitted object and its backend must already
+reside in memory. This API does not stream a checkpoint from disk, change
+sampler retention, or compute convergence diagnostics independently on chunks.
 }
 \examples{
 set.seed(1)

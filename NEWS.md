@@ -1,3 +1,13 @@
+# VariationalBayesHLRM 0.2.2
+
+- `posterior_draws()` and `posterior::as_draws()` now accept exact ordered
+  `draw_indices` and selected `parameters` for stored MCMC fits. Extraction
+  copies only requested blocks and retains chain/iteration provenance, with
+  support for latent-only CHLRM allocations and a selected-output budget.
+- Parameter subsets identify schema `posterior-draws-2`; default calls retain
+  the complete schema, output values, and random-stream behavior. The selectors
+  do not apply to CAVI/SVI or provide disk streaming/checkpoint compaction.
+
 # VariationalBayesHLRM 0.2.1
 
 - `fit_model()` now starts single-start variational optimization from the

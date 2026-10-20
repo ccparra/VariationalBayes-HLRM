@@ -103,6 +103,13 @@ NULL
 #' @param n_draws Number of draws to return; `NULL` uses the fit default.
 #' @param include_latent Whether to include CHLRM allocations.
 #' @param max_output_mb Allocation budget for materialized draws.
+#' @param draw_indices Optional strictly increasing positive indices into the
+#'   combined stored MCMC draws, mutually exclusive with `n_draws`. These select
+#'   exact draws without random subsampling. Not available for CAVI/SVI.
+#' @param parameters Optional unique MCMC parameter block names. Blocks are
+#'   returned in canonical model order. `NULL` returns every parameter;
+#'   `character()` with `include_latent = TRUE` returns only CHLRM allocations.
+#'   Not available for CAVI/SVI.
 #' @param predictors Predictor names/indices to scale, or `"all"`.
 #' @param center_predictors,scale_predictors Whether to center or scale selected
 #'   predictor columns.
@@ -124,6 +131,21 @@ NULL
 #' Single-start SVI results under this contract differ from versions before
 #' 0.2.1, which continued the constructor's random stream. Reproduce historical
 #' results with their original package version and source commit.
+#'
+#' For MCMC, consecutive `draw_indices` requests can extract a complete trace
+#' in bounded output blocks. Each result retains the original `stored_draw`,
+#' `chain`, and `iteration` in `draw_index`; its local `draw` starts at one.
+#' Indices address the combined stored order, not an individual chain's
+#' iteration. Explicit indices consume no random draws. Omitting selectors
+#' preserves the existing extraction and variational sampling behavior.
+#' Parameter subsets use schema `posterior-draws-2` and record
+#' `metadata$parameter_selection`; complete parameter results retain schema
+#' `posterior-draws-1`. Latent-only objects require `include_latent = TRUE` when
+#' converted with `posterior::as_draws()` and have no parameter density plot.
+#' The output budget accounts for selected blocks before extraction. It is
+#' not a bound on process RSS: the fitted object and its backend must already
+#' reside in memory. This API does not stream a checkpoint from disk, change
+#' sampler retention, or compute convergence diagnostics independently on chunks.
 #' @examples
 #' set.seed(1)
 #' X <- cbind(intercept = 1, predictor = seq(-1, 1, length.out = 20))
