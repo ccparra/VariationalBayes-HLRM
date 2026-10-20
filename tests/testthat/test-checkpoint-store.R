@@ -102,6 +102,55 @@ test_that("stored terminal sampler and RNG state resume the same chains", {
   }
 })
 
+test_that("store writing avoids whole-state clones and preserves existing object identities", {
+  directory <- tempfile(); dir.create(directory)
+  on.exit(unlink(directory, recursive = TRUE))
+  for (model in c("LRM", "HLRM", "CHLRM")) for (chains in c(1L, 2L)) {
+    fit <- .checkpoint_store_fit(model, chains)
+    expected <- .typed_mcmc_checkpoint(fit)
+    parent <- file.path(directory, paste(model, chains)); dir.create(parent)
+    path <- file.path(parent, "first.rds"); store <- file.path(parent, "history")
+    # A deep-clone attempt is a regression even when tiny fixtures fit in RAM.
+    local({
+      testthat::local_mocked_bindings(.clone_mcmc_state = function(x)
+        stop("unexpected whole-state clone"), .package = "VariationalBayesHLRM")
+      save_mcmc_checkpoint(fit, path, store, 4L)
+    })
+    manifest <- readRDS(path)
+    files <- .checkpoint_store_files(store); hashes <- unname(tools::md5sum(files))
+    legacy_root <- .checkpoint_store_encode(expected, store, .checkpoint_store_config(4L))
+    expect_identical(legacy_root, manifest$root)
+    expect_identical(.checkpoint_store_files(store), files)
+    expect_identical(unname(tools::md5sum(files)), hashes)
+    expect_identical(.typed_mcmc_checkpoint(read_mcmc_checkpoint(path)), expected)
+  }
+})
+
+test_that("a published store snapshot is isolated from subsequent source mutations", {
+  directory <- tempfile(); dir.create(directory)
+  on.exit(unlink(directory, recursive = TRUE))
+  original <- file.path(directory, "legacy.rds")
+  save_mcmc_checkpoint(.checkpoint_store_fit(), original)
+  fit <- read_mcmc_checkpoint(original) # Do not mutate cached fixture backends.
+  expected <- .typed_mcmc_checkpoint(fit)
+  path <- file.path(directory, "first.rds"); store <- file.path(directory, "history")
+  save_mcmc_checkpoint(fit, path, store, 4L)
+  fit$metadata$after_publication <- TRUE
+  attr(fit, "backend")$rng_state[2L] <- 42L
+  attr(fit, "backends")[[1L]]$chains$Betak[1L] <- 12345
+  expect_false(identical(.typed_mcmc_checkpoint(fit), expected))
+  expect_identical(.typed_mcmc_checkpoint(read_mcmc_checkpoint(path)), expected)
+  # Mutable references in backend values or atomic attributes are rejected
+  # before any object is encoded, even without the legacy cloning operation.
+  attr(attr(fit, "backends")[[1L]]$chains$Betak, "unsupported") <- new.env()
+  rejected <- file.path(directory, "rejected"); dir.create(rejected)
+  expect_error(save_mcmc_checkpoint(fit, file.path(rejected, "bad.rds"),
+    file.path(rejected, "history"), 4L), "plain atomic/list")
+  expect_length(.checkpoint_store_files(file.path(rejected, "history")), 0L)
+  expect_false(file.exists(file.path(rejected, "bad.rds")))
+  expect_false(dir.exists(file.path(rejected, "history", ".write-lock")))
+})
+
 test_that("chunking preserves allocation axes, attributes and exact prefix blocks", {
   directory <- tempfile(); dir.create(directory); dir.create(file.path(directory, "objects"))
   on.exit(unlink(directory, recursive = TRUE))

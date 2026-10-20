@@ -162,7 +162,12 @@
     if (!file.rename(temporary, config_path)) stop("Could not publish checkpoint store configuration")
   }
   dir.create(file.path(store, "objects"), showWarnings = FALSE)
-  checkpoint <- .typed_mcmc_checkpoint(fit)
+  # This synchronous encoder only reads plain values. Retain their references
+  # under R's copy-on-modify semantics instead of deep-cloning every backend
+  # history through a whole-state serialized buffer. Validate values AND their
+  # attributes before encoding; mutable environments must never enter the store.
+  # The default single-file snapshot and transactional sampler clones are unchanged.
+  checkpoint <- .typed_mcmc_checkpoint(fit, copy_state = identity)
   .checkpoint_plain_state(checkpoint)
   root <- .checkpoint_store_encode(checkpoint, store, config)
   manifest <- structure(list(schema_version = "typed-mcmc-checkpoint-store-1",

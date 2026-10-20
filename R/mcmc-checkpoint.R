@@ -1,17 +1,17 @@
 # Typed serialization and restoration of MCMC checkpoints.
 
-.mcmc_backend_checkpoint <- function(fit) {
+.mcmc_backend_checkpoint <- function(fit, copy_state = .clone_mcmc_state) {
   model <- .mcmc_model_name(fit)
   if (!identical(fit$fit_status, "fitted"))
     stop("Only a successfully fitted MCMC object can be checkpointed")
   structure(list(
     schema_version = "mcmc-checkpoint-1",
     model = model,
-    sampler = .clone_mcmc_state(fit[[.mcmc_object_name(model)]]),
-    chains = .clone_mcmc_state(fit$chains),
-    run_settings = .clone_mcmc_state(fit$run_settings),
-    rng_state = .clone_mcmc_state(fit$rng_state),
-    fit_metadata = .clone_mcmc_state(fit$fit_metadata)
+    sampler = copy_state(fit[[.mcmc_object_name(model)]]),
+    chains = copy_state(fit$chains),
+    run_settings = copy_state(fit$run_settings),
+    rng_state = copy_state(fit$rng_state),
+    fit_metadata = copy_state(fit$fit_metadata)
   ), class = "mcmc_checkpoint")
 }
 
@@ -61,7 +61,7 @@
   if (model == "CHLRM") dim(chains$Betak)[1L] else nrow(chains$Beta)
 }
 
-.typed_mcmc_checkpoint <- function(fit) {
+.typed_mcmc_checkpoint <- function(fit, copy_state = .clone_mcmc_state) {
   if (!inherits(fit, "vb_model_fit") || !identical(fit$method, "MCMC"))
     stop("fit must be an MCMC vb_model_fit produced by fit_model()")
   summary_backend <- .fit_backend(fit)
@@ -80,8 +80,9 @@
     schema_version = "typed-mcmc-checkpoint-1",
     model = fit$model,
     fit = snapshot,
-    summary_backend = .mcmc_backend_checkpoint(summary_backend),
-    chain_backends = lapply(chain_backends, .mcmc_backend_checkpoint),
+    summary_backend = .mcmc_backend_checkpoint(summary_backend, copy_state),
+    chain_backends = lapply(chain_backends, .mcmc_backend_checkpoint,
+      copy_state = copy_state),
     orchestration = orchestration),
     class = c("vb_mcmc_checkpoint", "list"))
 }

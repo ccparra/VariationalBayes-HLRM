@@ -1,3 +1,14 @@
+# VariationalBayesHLRM 0.2.4
+
+- Object-store checkpoint writing now reads a validated plain-state view of
+  backend histories without first serializing and deep-cloning all chains.
+  It retains R copy-on-modify protection and the existing manifest/object
+  formats, checksums, writer lock and publication order. The default single-file
+  checkpoint and transactional sampler/restoration copies are unchanged.
+- Saving still retains the full fit and copies individual encoded chunks;
+  restoration still reconstructs complete state in RAM. This does not provide
+  disk-streamed sampling or guarantee a workload's RSS budget.
+
 # VariationalBayesHLRM 0.2.3
 
 - `save_mcmc_checkpoint()` accepts an optional immutable object `store` and

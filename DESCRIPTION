@@ -1,7 +1,7 @@
 Package: VariationalBayesHLRM
 Type: Package
 Title: Bayesian Inference for Linear, Hierarchical, and Clustered Regression
-Version: 0.2.3
+Version: 0.2.4
 Authors@R: person("Cristian", "Parra", role = c("aut", "cre"),
     email = "cristian.parra@users.noreply.github.com")
 Author: Cristian Parra [aut, cre]

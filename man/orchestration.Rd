@@ -60,8 +60,10 @@ draw dimension is second. Complete blocks can be reused across extensions;
 changed alignment coordinates and partial tail blocks may require new data.
 Exact compressed-byte identity determines reuse; writer serialization/runtime
 changes can reduce sharing. Checksums detect changed files, not authenticity.
-Saving still constructs the full plain checkpoint and scans its history;
-reading reconstructs all retained state in memory. This is disk deduplication,
+Store writing reads a validated plain-state view without deep-cloning entire
+backend histories first. It retains the full fit, scans all histories and
+copies individual encoded chunks. Reading reconstructs all state in memory.
+This is disk deduplication,
 not disk-streamed sampling, constant-time append or an RSS guarantee. Validate
 writer/reader RSS, file counts, runtime and storage on the intended workload.
 }
