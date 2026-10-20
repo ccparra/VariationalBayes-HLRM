@@ -168,6 +168,9 @@ in bounded output blocks. Each result retains the original \code{stored_draw},
 Indices address the combined stored order, not an individual chain's
 iteration. Explicit indices consume no random draws. Omitting selectors
 preserves the existing extraction and variational sampling behavior.
+Standard draws conversion keeps \code{source_chain}, \code{source_iteration} and
+\code{source_stored_draw} as ordinary columns because \code{posterior} normalizes its
+reserved chain/iteration indices, especially for incomplete chain subsets.
 Parameter subsets use schema \code{posterior-draws-2} and record
 \code{metadata$parameter_selection}; complete parameter results retain schema
 \code{posterior-draws-1}. Latent-only objects require \code{include_latent = TRUE} when

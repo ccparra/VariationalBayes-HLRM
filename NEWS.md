@@ -7,6 +7,9 @@
 - Parameter subsets identify schema `posterior-draws-2`; default calls retain
   the complete schema, output values, and random-stream behavior. The selectors
   do not apply to CAVI/SVI or provide disk streaming/checkpoint compaction.
+- Standard draws conversion adds `source_chain` beside the existing source
+  iteration/stored-draw columns, preserving original chain identifiers when
+  `posterior` normalizes a selected subset's reserved indices.
 
 # VariationalBayesHLRM 0.2.1
 

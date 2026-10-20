@@ -138,6 +138,9 @@ NULL
 #' Indices address the combined stored order, not an individual chain's
 #' iteration. Explicit indices consume no random draws. Omitting selectors
 #' preserves the existing extraction and variational sampling behavior.
+#' Standard draws conversion keeps `source_chain`, `source_iteration` and
+#' `source_stored_draw` as ordinary columns because `posterior` normalizes its
+#' reserved chain/iteration indices, especially for incomplete chain subsets.
 #' Parameter subsets use schema `posterior-draws-2` and record
 #' `metadata$parameter_selection`; complete parameter results retain schema
 #' `posterior-draws-1`. Latent-only objects require `include_latent = TRUE` when

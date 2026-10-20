@@ -295,6 +295,7 @@ as_draws.vb_posterior_draws <- function(x, include_latent = FALSE, ...) {
   if (is_mcmc) {
     # draws_df requires a rectangular sequential .iteration index. Keep the
     # original (possibly subsampled and gapped) provenance as ordinary columns.
+    values$source_chain <- index$chain
     values$source_iteration <- index$iteration
     values$source_stored_draw <- index$stored_draw
   }

@@ -113,6 +113,19 @@ test_that("unselected parameter tensors are never extracted", {
   expect_named(draws$parameters, "component_variances")
 })
 
+test_that("standard conversion retains source chain IDs for partial chains", {
+  fit <- .ordered_draw_fits()
+  for (indices in list(10:12, c(1L, 9L, 10L))) {
+    semantic <- posterior_draws(fit, draw_indices = indices)
+    frame <- as.data.frame(posterior::as_draws(semantic))
+    expect_equal(frame$source_chain, semantic$draw_index$chain)
+    expect_equal(frame$source_iteration, semantic$draw_index$iteration)
+    expect_equal(frame$source_stored_draw, semantic$draw_index$stored_draw)
+    expect_equal(frame$`population_coefficients[1]`,
+      semantic$parameters$population_coefficients[, 1])
+  }
+})
+
 test_that("explicit indices neither sample nor change caller RNG state", {
   fit <- .ordered_draw_fits()
   scope <- inference_rng_scope(8022)
