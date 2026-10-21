@@ -62,6 +62,7 @@
 }
 
 .typed_mcmc_checkpoint <- function(fit, copy_state = .clone_mcmc_state) {
+  .require_complete_mcmc_fit(fit)
   if (!inherits(fit, "vb_model_fit") || !identical(fit$method, "MCMC"))
     stop("fit must be an MCMC vb_model_fit produced by fit_model()")
   summary_backend <- .fit_backend(fit)
@@ -94,6 +95,7 @@
       !identical(checkpoint$schema_version, "typed-mcmc-checkpoint-1") ||
       any(!required %in% names(checkpoint)) ||
       !inherits(checkpoint$fit, "vb_model_fit") ||
+      inherits(checkpoint$fit, "vb_mcmc_reporting_view") ||
       !identical(checkpoint$fit$method, "MCMC") ||
       !checkpoint$model %in% c("LRM", "HLRM", "CHLRM") ||
       !length(checkpoint$chain_backends))
@@ -112,6 +114,7 @@
 #' @rdname orchestration
 #' @export
 save_mcmc_checkpoint <- function(fit, path, store = NULL, chunk_size = 5000L) {
+  .require_complete_mcmc_fit(fit)
   if (!is.character(path) || length(path) != 1L || !nzchar(path))
     stop("path must be one nonempty file path")
   if (file.exists(path))

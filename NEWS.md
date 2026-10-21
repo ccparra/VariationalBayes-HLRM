@@ -1,3 +1,12 @@
+# VariationalBayesHLRM 0.2.7
+
+- `mcmc_reporting_view()` creates an independent, non-resumable CHLRM MCMC
+  reporting view without redundant native group-coefficient/variance arrays.
+  All component draws, allocations and public reporting inputs remain intact.
+  The original fit is unchanged; retain it or its complete checkpoint for
+  continuation. Views explicitly reject continuation and checkpoint writing.
+  This is not streamed fitting, and construction does not guarantee RSS limits.
+
 # VariationalBayesHLRM 0.2.6
 
 - CHLRM label validation scans every retained allocation in bounded chunks.

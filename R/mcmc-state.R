@@ -290,6 +290,7 @@
 #' @export
 resume_mcmc <- function(fit, additional_samples, seed = NULL,
                         verbose = FALSE) {
+  .require_complete_mcmc_fit(fit)
   if (!inherits(fit, "vb_model_fit") || !identical(fit$method, "MCMC"))
     stop("fit must be an MCMC vb_model_fit produced by fit_model()")
   additional_samples <- validate_integer_scalar(

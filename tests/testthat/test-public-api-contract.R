@@ -8,7 +8,7 @@ expected_exports <- c(
   "group_parameters", "grouped_regression_data", "hierarchical_dgp",
   "hlrm_model", "hlrm_prior", "initialization_from_prior",
   "initialization_kmeans", "initialization_ols", "initialization_values",
-  "log_likelihood", "lrm_model", "lrm_prior", "mcmc_control",
+  "log_likelihood", "lrm_model", "lrm_prior", "mcmc_control", "mcmc_reporting_view",
   "mcmc_stopping", "population_parameters", "posterior_draws",
   "posterior_predict", "posterior_predictive_check", "power_schedule",
   "pp_check_from_prediction", "ppc_discrepancies", "predictive_criteria",
