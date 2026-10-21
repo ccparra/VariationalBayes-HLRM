@@ -1,3 +1,19 @@
+# VariationalBayesHLRM 0.2.8
+
+- History-free MCMC restart states preserve current native sampler and per-chain
+  RNG state for LRM, HLRM and CHLRM. `advance_mcmc_state()` returns an exact new
+  unthinned block for one chain without concatenating its previous history or
+  repeating warm-up. Inputs and caller RNG remain unchanged; original full-fit
+  memory guards and reporting-view restrictions remain in place.
+- Restart files are immutable, checksum-protected, atomic state-only snapshots.
+  Selective reading from existing complete object-store checkpoints decodes
+  only restart/context nodes. Legacy full single-file checkpoints are not
+  accepted by the dedicated state-only format. Inversion normals are required
+  because serialized R RNG seeds do not include cached Box-Muller normal state.
+- These are restart/block primitives, not a disk-backed posterior reporting or
+  convergence interface. Full histories and scientific diagnostics must be
+  retained and handled separately; no workload RSS guarantee is implied.
+
 # VariationalBayesHLRM 0.2.7
 
 - `mcmc_reporting_view()` creates an independent, non-resumable CHLRM MCMC

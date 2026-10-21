@@ -66,3 +66,36 @@ svi_fit <- fit_model(
   seed = 104, verbose = FALSE
 )
 ```
+
+
+## History-free restart primitives
+
+For applications that manage immutable draw blocks separately, a complete MCMC
+fit can supply current sampler and per-chain RNG states without retaining its
+past histories in the returned object. Advance one chain at a time, preserve
+both the returned draw block and next state, and make scientific decisions only
+after a complete matched chain prefix. These operations never repeat warm-up or
+reseed continuation, and they preserve the caller's RNG. They require Inversion
+normal generation, including when recovering a saved stream.
+
+```{r, eval=FALSE}
+state <- mcmc_restart_state(mcmc_fit)
+block <- advance_mcmc_state(state, additional_samples = 5000, chain = 1,
+                            max_memory_mb = 512)
+# Persist block$draws and block$draw_index in the application's history store.
+save_mcmc_restart_state(block$state, "restart-002.state")
+next_state <- read_mcmc_restart_state("restart-002.state")
+
+# Existing immutable object-store checkpoints support selective state recovery.
+# This does not decode their historical draw chunks.
+state <- read_mcmc_restart_state("checkpoint-001.rds",
+                                 format = "checkpoint_store")
+```
+
+The context preserves extraction-time model/prior/scaling specifications. Current
+retained iteration counts are in each chain's `run_settings$samples`. Returned
+native draws have raw labels and use the sampler's working scale. This is a
+low-level state/block API, not a complete disk-backed posterior reporting engine
+or a convergence certificate. Keep the original full checkpoint/history, and
+use existing typed fitted objects for their posterior reports. Resource guards
+bound an analytical active-state/block allowance; they do not guarantee OS RSS.

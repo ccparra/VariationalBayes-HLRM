@@ -186,7 +186,7 @@
   invisible(normalizePath(path, mustWork = TRUE))
 }
 
-.read_mcmc_checkpoint_store <- function(manifest, path) {
+.checkpoint_store_location <- function(manifest, path) {
   if (!identical(manifest$schema_version, "typed-mcmc-checkpoint-store-1") ||
       !is.character(manifest$store) || length(manifest$store) != 1L ||
       is.na(manifest$store) || !nzchar(manifest$store) ||
@@ -204,6 +204,11 @@
   config <- readRDS(config_path)
   if (!identical(config, .checkpoint_store_config(config$chunk_size)))
     stop("Unsupported checkpoint store configuration")
+  store
+}
+
+.read_mcmc_checkpoint_store <- function(manifest, path) {
+  store <- .checkpoint_store_location(manifest, path)
   checkpoint <- .checkpoint_store_decode(manifest$root, store,
     new.env(parent = emptyenv()), new.env(parent = emptyenv()))
   if (!identical(checkpoint$model, manifest$model)) stop("Checkpoint store model differs")
