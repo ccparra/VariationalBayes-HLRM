@@ -96,12 +96,21 @@ fit_label_reference_chlrm <- function(draws, log_joint = NULL,
   ), class = "chlrm_label_reference")
 }
 
+# Bound temporary logical/double vectors while checking every retained label.
+.valid_chlrm_allocation_labels <- function(z, S, K) {
+  if (!is.matrix(z) || ncol(z) != S) return(FALSE)
+  if (length(z)) for (first in seq.int(1, length(z), by = 65536L)) {
+    values <- z[seq.int(first, min(length(z), first + 65535L))]
+    if (any(!is.finite(values)) || any(values != floor(values)) ||
+        any(values < 1L | values > K)) return(FALSE)
+  }
+  TRUE
+}
+
 .align_component_draws_chlrm <- function(draws, reference) {
   dims <- validate_component_draws_chlrm(draws)
   .validate_chlrm_label_reference(reference, dims$K, dims$p)
-  if (!is.null(draws$z) && (!is.matrix(draws$z) || ncol(draws$z) != dims$S ||
-      any(!is.finite(draws$z)) || any(draws$z != floor(draws$z)) ||
-      any(draws$z < 1L | draws$z > dims$K)))
+  if (!is.null(draws$z) && !.valid_chlrm_allocation_labels(draws$z, dims$S, dims$K))
     stop("draws$z must be an integer [groups,S] matrix with labels in 1:K")
   eta <- .chlrm_component_locations(draws)
   out <- draws

@@ -1,3 +1,12 @@
+# VariationalBayesHLRM 0.2.6
+
+- CHLRM label validation scans every retained allocation in bounded chunks.
+  Posterior allocation probabilities and occupied-component counts accumulate
+  exact counts in draw blocks rather than allocating full-history logical
+  matrices or a full transpose. Labels, component matching, posterior summaries,
+  chain counts, RNG state and sampling transitions are unchanged. Complete
+  histories remain in RAM; this does not provide disk-streamed sampling.
+
 # VariationalBayesHLRM 0.2.5
 
 - Checkpoint-store decoding no longer retains encoded numeric chunks alongside

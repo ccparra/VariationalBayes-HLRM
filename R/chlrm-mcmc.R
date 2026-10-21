@@ -1,3 +1,21 @@
+# Exact integer counts accumulated in bounded draw blocks, then divided once.
+# This avoids one groups-by-all-draws logical matrix per component and apply's
+# full transpose, without subsampling or changing modal/tie conventions.
+.chlrm_allocation_marginals <- function(z, K, block_size = 1024L) {
+  S <- ncol(z); m <- nrow(z)
+  counts <- matrix(0, m, K)
+  occupied <- integer(S)
+  names(occupied) <- colnames(z)
+  for (first in seq.int(1L, S, by = block_size)) {
+    index <- seq.int(first, min(S, first + block_size - 1L))
+    block <- z[, index, drop = FALSE]
+    for (k in seq_len(K)) counts[, k] <- counts[, k] + rowSums(block == k)
+    occupied[index] <- vapply(seq_len(ncol(block)), function(s)
+      length(unique(block[, s])), integer(1L))
+  }
+  list(probabilities = counts / S, occupied = occupied)
+}
+
 mcmc_chlrm <- R6::R6Class(
   "mcmc_chlrm",
   public = list(
@@ -185,12 +203,12 @@ mcmc_chlrm <- R6::R6Class(
       partition <- if (isTRUE(include_incidence))
         dahl_partition_chlrm(summary_chains$z) else NULL
 
-      prob <- matrix(0, nrow = m, ncol = K)
-      for (k in 1:K) prob[, k] <- rowMeans(z_mat == k)
+      allocation <- .chlrm_allocation_marginals(z_mat, K)
+      prob <- allocation$probabilities
       z_mode <- max.col(prob, ties.method = "first")
       assignment_entropy <- -rowSums(ifelse(prob > 0, prob * log(prob), 0))
 
-      nc <- apply(z_mat, 2, function(z) length(unique(z)))
+      nc <- allocation$occupied
       tab_nc  <- table(nc)
       k_vals   <- as.integer(names(tab_nc))
       prob_nc <- as.numeric(tab_nc) / S
