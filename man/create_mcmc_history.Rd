@@ -27,7 +27,8 @@ mcmc_history_draws(
   iterations = NULL,
   fields = NULL,
   max_output_mb = 256,
-  max_block_mb = 64
+  max_block_mb = 64,
+  field_indices = NULL
 )
 }
 \arguments{
@@ -59,6 +60,12 @@ Default requests the full selected chain, subject to the output guard.}
 \item{max_block_mb}{Guard for an individual decoded numeric value chunk, in
 MiB. Old baseline chunk sizes are preserved, so a large baseline field may
 require an explicit larger chunk budget. These are not RSS limits.}
+
+\item{field_indices}{Optional named list selecting non-iteration coordinates
+for requested fields. Each value is a list of coordinate vectors in the
+original field dimension order with the iteration axis omitted; \code{NULL}
+keeps that axis in full. This allows a single parameter/group trace to be
+read without allocating the complete native field.}
 }
 \value{
 \code{create_mcmc_history()} and \code{append_mcmc_history()} return an immutable

@@ -78,12 +78,48 @@ test_that('derived CHLRM encoding reconstructs every group field without storing
   expect_error(.history_child(record$root,'sigma2j',store,cache,decoded),'Missing')
   fields<-c('Betaj','sigma2j','z','Betak')
   expect_identical(mcmc_history_draws(history,1L,9:13,fields)$draws,block$draws[fields])
+  selected_beta<-mcmc_history_draws(history,1L,9:13,'Betaj',
+    field_indices=list(Betaj=list(c(2L,1L),2L)))$draws$Betaj
+  expect_identical(selected_beta,block$draws$Betaj[,c(2L,1L),2L,drop=FALSE])
+  selected_variance<-mcmc_history_draws(history,1L,9:13,'sigma2j',
+    field_indices=list(sigma2j=list(c(2L,1L))))$draws$sigma2j
+  expect_identical(selected_variance,block$draws$sigma2j[,c(2L,1L),drop=FALSE])
   for(model in c('LRM','HLRM','CHLRM')) {
     small<-file.path(directory,model);dir.create(small)
     fit<-.history_test_fit(model,1L,p=1L,K=1L);h<-.history_test_create(fit,small)
     block<-advance_mcmc_state(mcmc_history_restart_state(h),1L);h<-append_mcmc_history(h,block)
     expect_identical(mcmc_history_draws(h,1L,9L)$draws,block$draws)
   }
+})
+
+test_that('history reads select exact non-iteration coordinates across baseline and appended blocks',{
+  directory<-tempfile();dir.create(directory);on.exit(unlink(directory,recursive=TRUE))
+  fit<-.history_test_fit('CHLRM',chains=2L,p=2L,K=2L)
+  history<-.history_test_create(fit,directory)
+  state<-mcmc_history_restart_state(history)
+  block<-advance_mcmc_state(state,3L,chain=1L)
+  history<-append_mcmc_history(history,block)
+  all_draws<-mcmc_history_draws(history,1L,iterations=1:11,fields='Betaj',max_block_mb=10)$draws$Betaj
+  expect_identical(dim(all_draws),c(11L,4L,2L))
+  beta<-mcmc_history_draws(history,1L,iterations=c(1L,8L,9L,11L),fields='Betaj',
+    field_indices=list(Betaj=list(c(4L,2L),2L)),max_block_mb=10)$draws$Betaj
+  expect_identical(beta,all_draws[c(1L,8L,9L,11L),c(4L,2L),2L,drop=FALSE])
+  component<-mcmc_history_draws(history,1L,iterations=c(2L,9L,11L),fields='Betak',
+    field_indices=list(Betak=list(c(2L,1L),2L)),max_block_mb=10)$draws$Betak
+  raw_component<-mcmc_history_draws(history,1L,iterations=c(2L,9L,11L),fields='Betak',
+    max_block_mb=10)$draws$Betak
+  expect_identical(component,raw_component[,c(2L,1L),2L,drop=FALSE])
+  allocation<-mcmc_history_draws(history,1L,iterations=c(1L,9L,11L),fields='z',
+    field_indices=list(z=list(c(4L,3L,1L))),max_block_mb=10)$draws$z
+  raw_allocation<-mcmc_history_draws(history,1L,iterations=c(1L,9L,11L),fields='z',
+    max_block_mb=10)$draws$z
+  expect_identical(allocation,raw_allocation[c(4L,3L,1L),,drop=FALSE])
+  expect_error(mcmc_history_draws(history,1L,fields='Betaj',
+    field_indices=list(Betaj=list(c(1L,1L),2L))),'invalid or duplicated')
+  expect_error(mcmc_history_draws(history,1L,fields='Betaj',
+    field_indices=list(Betaj=list(9L,2L))),'invalid or duplicated')
+  expect_error(mcmc_history_draws(history,1L,fields='Betaj',
+    field_indices=list(Betaj=list(1L))),'one selector per non-iteration')
 })
 
 test_that('parent identities, chain frontiers and native consistency reject malformed appends',{

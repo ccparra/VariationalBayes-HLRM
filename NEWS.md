@@ -1,3 +1,11 @@
+# VariationalBayesHLRM 0.2.10
+
+- `mcmc_history_draws()` can select coordinates along non-iteration dimensions
+  of native fields. This permits bounded output reads for individual component,
+  group, or coefficient traces, including losslessly reconstructed CHLRM group
+  fields, while preserving exact values and coordinate order. The chunk decode
+  guard still applies to the stored chunk size and is not an RSS guarantee.
+
 # VariationalBayesHLRM 0.2.9
 
 - Immutable MCMC history snapshots link a complete object-store baseline and

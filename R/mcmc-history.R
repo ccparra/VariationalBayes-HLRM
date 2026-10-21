@@ -249,7 +249,8 @@ append_mcmc_history <- function(history, block) {
   read_mcmc_history(directory, x$generation)
 }
 
-.history_atomic_subset <- function(key, indices, store, cache, decoded, max_block_mb) {
+.history_atomic_subset <- function(key, indices, store, cache, decoded, max_block_mb,
+                                  field_indices = NULL) {
   node <- .checkpoint_store_get(key, store, cache)
   if (!identical(node$kind, 'atomic') || !node$storage_type %in% c('integer', 'double') ||
       length(node$axis) != 1L || !node$axis %in% c(1L, 2L) ||
@@ -260,10 +261,33 @@ append_mcmc_history <- function(history, block) {
     stop('Native history dimensions disagree')
   width <- if (node$storage_type == 'integer') 4 else 8
   per_iteration <- if (is.null(dimensions)) 1 else prod(as.double(dimensions[-axis]))
+  if (!is.null(field_indices)) {
+    if (is.null(dimensions) || !is.list(field_indices) ||
+        length(field_indices) != length(dimensions) - 1L)
+      stop('field_indices must select non-iteration dimensions of an array field')
+    non_iteration_axes <- setdiff(seq_along(dimensions), axis)
+    for (i in seq_along(field_indices)) {
+      selected <- field_indices[[i]]
+      if (!is.null(selected) && (!is.numeric(selected) || !length(selected) ||
+          anyNA(selected) || any(!is.finite(selected)) || any(selected != floor(selected)) ||
+          any(selected < 1 | selected > dimensions[non_iteration_axes[i]]) ||
+          anyDuplicated(selected)))
+        stop('field_indices contain an invalid or duplicated coordinate')
+    }
+  } else if (!is.null(dimensions)) {
+    field_indices <- rep(list(NULL), length(dimensions) - 1L)
+  }
   blocks <- unique((indices - 1L) %/% node$chunk_size + 1L)
   output_dimensions <- dimensions
   if (!is.null(output_dimensions)) output_dimensions[axis] <- length(indices)
-  out <- vector(node$storage_type, length(indices) * per_iteration)
+  if (!is.null(output_dimensions) && !is.null(field_indices)) {
+    non_iteration_axes <- setdiff(seq_along(output_dimensions), axis)
+    for (i in seq_along(field_indices)) if (!is.null(field_indices[[i]]))
+      output_dimensions[non_iteration_axes[i]] <- length(field_indices[[i]])
+  }
+  output_per_iteration <- if (is.null(output_dimensions)) 1 else
+    prod(as.double(output_dimensions[-axis]))
+  out <- vector(node$storage_type, length(indices) * output_per_iteration)
   if (!is.null(output_dimensions)) dim(out) <- output_dimensions
   for (b in blocks) {
     first <- (b - 1L) * node$chunk_size + 1L; last <- min(node$count, b * node$chunk_size)
@@ -276,6 +300,14 @@ append_mcmc_history <- function(history, block) {
     shape <- dimensions; if (!is.null(shape)) {shape[axis] <- last - first + 1L; dim(block) <- shape}
     positions <- which(indices >= first & indices <= last)
     selected <- .checkpoint_axis_subset(block, indices[positions] - first + 1L, axis)
+    if (!is.null(field_indices) && any(!vapply(field_indices, is.null, logical(1L)))) {
+      args <- c(list(selected), rep(list(TRUE), length(dim(selected))), list(drop = FALSE))
+      non_iteration_axes <- setdiff(seq_along(dim(selected)), axis)
+      for (i in seq_along(field_indices)) if (!is.null(field_indices[[i]]))
+        args[[non_iteration_axes[i] + 1L]] <- field_indices[[i]]
+      selected <- do.call(`[`, args)
+      rm(args)
+    }
     if (is.null(dimensions)) out[positions] <- selected else {
       args <- c(list(out), rep(list(TRUE), length(dimensions)), list(value = selected))
       args[[axis + 1L]] <- positions; out <- do.call(`[<-`, args); rm(args)
@@ -284,23 +316,57 @@ append_mcmc_history <- function(history, block) {
   }
   out
 }
-.history_read_fields <- function(root, fields, indices, store, cache, decoded, max_block_mb, representation, stats) {
+.history_read_fields <- function(root, fields, indices, store, cache, decoded,
+    max_block_mb, representation, stats, field_indices = NULL) {
   derived <- representation == 'chlrm-derived-groups-1' & fields %in% c('Betaj', 'sigma2j')
-  needed <- unique(c(fields[!derived], if (any(derived)) c('Betak', 'sigma2k', 'z')))
-  values <- lapply(needed, function(name) .history_atomic_subset(
-    .history_child(root, name, store, cache, decoded), indices, store, cache, decoded, max_block_mb))
-  names(values) <- needed
+  values <- lapply(fields[!derived], function(name) .history_atomic_subset(
+    .history_child(root, name, store, cache, decoded), indices, store, cache, decoded,
+    max_block_mb, field_indices[[name]]))
+  names(values) <- fields[!derived]
   n <- length(indices)
-  if ('Betaj' %in% fields[derived]) {
-    a <- array(NA_real_, c(n, stats$m, stats$p))
-    for (j in seq_len(stats$m)) for (k in seq_len(stats$p))
-      a[, j, k] <- values$Betak[cbind(seq_len(n), values$z[j, ], k)]
-    values$Betaj <- a
+  derived_values <- list()
+  if (any(derived)) {
+    requested_groups <- unique(unlist(lapply(fields[derived], function(name) {
+      x <- field_indices[[name]]
+      if (is.null(x) || is.null(x[[1L]])) seq_len(stats$m) else x[[1L]]
+    }), use.names = FALSE))
+    z_indices <- list(requested_groups)
+    z <- .history_atomic_subset(.history_child(root, 'z', store, cache, decoded),
+      indices, store, cache, decoded, max_block_mb, z_indices)
+    if ('Betaj' %in% fields[derived]) {
+      beta_indices <- field_indices[['Betaj']]
+      coefficients <- if (is.null(beta_indices) || is.null(beta_indices[[2L]]))
+        seq_len(stats$p) else beta_indices[[2L]]
+      betak <- .history_atomic_subset(.history_child(root, 'Betak', store, cache, decoded),
+        indices, store, cache, decoded, max_block_mb, list(NULL, coefficients))
+      a <- array(NA_real_, c(n, length(requested_groups), length(coefficients)))
+      for (j in seq_along(requested_groups)) for (k in seq_along(coefficients))
+        a[, j, k] <- betak[cbind(seq_len(n), z[j, ], k)]
+      derived_values$Betaj <- a
+      rm(betak, a)
+    }
+    if ('sigma2j' %in% fields[derived]) {
+      sigma2k <- .history_atomic_subset(.history_child(root, 'sigma2k', store, cache, decoded),
+        indices, store, cache, decoded, max_block_mb)
+      a <- matrix(NA_real_, n, length(requested_groups))
+      for (j in seq_along(requested_groups))
+        a[, j] <- sigma2k[cbind(seq_len(n), z[j, ])]
+      derived_values$sigma2j <- a
+      rm(sigma2k, a)
+    }
+    rm(z)
   }
-  if ('sigma2j' %in% fields[derived]) {
-    a <- matrix(NA_real_, n, stats$m)
-    for (j in seq_len(stats$m)) a[, j] <- values$sigma2k[cbind(seq_len(n), values$z[j, ])]
-    values$sigma2j <- a
+  for (name in fields[derived]) {
+    value <- derived_values[[name]]
+    selected <- field_indices[[name]]
+    if (!is.null(selected) && !is.null(selected[[1L]])) {
+      positions <- match(selected[[1L]], requested_groups)
+      args <- c(list(value), rep(list(TRUE), length(dim(value))), list(drop = FALSE))
+      args[[3L]] <- positions
+      value <- do.call(`[`, args)
+      rm(args)
+    }
+    values[[name]] <- value
   }
   values[fields]
 }
@@ -310,6 +376,11 @@ append_mcmc_history <- function(history, block) {
 #' @param iterations Optional strictly increasing retained iteration identities.
 #'   Default requests the full selected chain, subject to the output guard.
 #' @param fields Optional unique native sampler fields. Defaults to every field.
+#' @param field_indices Optional named list selecting non-iteration coordinates
+#'   for requested fields. Each value is a list of coordinate vectors in the
+#'   original field dimension order with the iteration axis omitted; `NULL`
+#'   keeps that axis in full. This allows a single parameter/group trace to be
+#'   read without allocating the complete native field.
 #' @param max_output_mb Analytical requested-output guard, in MiB.
 #' @param max_block_mb Guard for an individual decoded numeric value chunk, in
 #'   MiB. Old baseline chunk sizes are preserved, so a large baseline field may
@@ -321,7 +392,7 @@ append_mcmc_history <- function(history, block) {
 #'   dependencies). It does not align labels, sample draws, or certify mixing.
 #' @export
 mcmc_history_draws <- function(history, chain, iterations = NULL, fields = NULL,
-    max_output_mb = 256, max_block_mb = 64) {
+    max_output_mb = 256, max_block_mb = 64, field_indices = NULL) {
   .restart_state_budget(max_output_mb); .restart_state_budget(max_block_mb)
   x <- .history_manifest(history); state <- mcmc_history_restart_state(history)
   chain <- validate_integer_scalar(chain, 'chain', 1L)
@@ -337,17 +408,50 @@ mcmc_history_draws <- function(history, chain, iterations = NULL, fields = NULL,
   if (is.null(fields)) fields <- names(template)
   if (!is.character(fields) || !length(fields) || anyNA(fields) || anyDuplicated(fields) || any(!fields %in% names(template)))
     stop('fields must contain unique native parameter names')
-  bytes <- sum(vapply(template[fields], function(a) length(a) * if (is.integer(a)) 4 else 8, numeric(1L)))
+  if (is.null(field_indices)) field_indices <- list()
+  if (!is.list(field_indices) || (length(field_indices) &&
+      (is.null(names(field_indices)) || anyNA(names(field_indices)) ||
+       anyDuplicated(names(field_indices)) || any(!names(field_indices) %in% fields))))
+    stop('field_indices must be a named list for requested fields')
+  for (name in names(field_indices)) {
+    a <- template[[name]]
+    axis <- if (x$model == 'CHLRM' && identical(name, 'z')) 2L else 1L
+    d <- dim(a)
+    if (is.null(d) || !is.list(field_indices[[name]]) ||
+        length(field_indices[[name]]) != length(d) - 1L)
+      stop('field_indices must contain one selector per non-iteration array dimension')
+    non_iteration_axes <- setdiff(seq_along(d), axis)
+    for (i in seq_along(field_indices[[name]])) {
+      selected <- field_indices[[name]][[i]]
+      if (!is.null(selected) && (!is.numeric(selected) || !length(selected) ||
+          anyNA(selected) || any(!is.finite(selected)) || any(selected != floor(selected)) ||
+          any(selected < 1 | selected > d[non_iteration_axes[i]]) || anyDuplicated(selected)))
+        stop('field_indices contain an invalid or duplicated coordinate')
+    }
+  }
+  selected_template <- lapply(fields, function(name) {
+    a <- template[[name]]; selectors <- field_indices[[name]]
+    if (!is.null(selectors)) {
+      axis <- if (x$model == 'CHLRM' && identical(name, 'z')) 2L else 1L
+      args <- c(list(a), rep(list(TRUE), length(dim(a))), list(drop = FALSE))
+      non_iteration_axes <- setdiff(seq_along(dim(a)), axis)
+      for (i in seq_along(selectors)) if (!is.null(selectors[[i]]))
+        args[[non_iteration_axes[i] + 1L]] <- selectors[[i]]
+      a <- do.call(`[`, args)
+    }
+    a
+  }); names(selected_template) <- fields
+  bytes <- sum(vapply(selected_template, function(a) length(a) * if (is.integer(a)) 4 else 8, numeric(1L)))
   estimated <- 1.5 * as.double(n) * (bytes + 8) / 1024^2
   if (!is.finite(estimated) || estimated > max_output_mb) stop('Native draws exceed max_output_mb')
   if (is.null(iterations)) iterations <- seq_len(available) else iterations <- as.integer(iterations)
-  out <- lapply(template[fields], function(a) {
-    shape <- dim(a); axis <- if (x$model == 'CHLRM' && identical(dim(a), c(stats$m, 1L)) &&
-      is.integer(a)) 2L else 1L
+  out <- Map(function(a, name) {
+    shape <- dim(a); axis <- if (x$model == 'CHLRM' && identical(name, 'z')) 2L else 1L
     value <- vector(typeof(a), as.double(length(a)) * n)
     if (!is.null(shape)) {shape[axis] <- n; dim(value) <- shape}
     value
-  })
+  }, selected_template, names(selected_template))
+  names(out) <- fields
   cache <- new.env(parent = emptyenv()); decoded <- new.env(parent = emptyenv())
   segments <- list(list(first = 1L, last = x$baseline$counts[chain], representation = 'native-1'))
   baseline <- NULL
@@ -366,7 +470,7 @@ mcmc_history_draws <- function(history, chain, iterations = NULL, fields = NULL,
     }
     cache <- new.env(parent = emptyenv()); decoded <- new.env(parent = emptyenv())
     part <- .history_read_fields(root, fields, local_indices, store, cache, decoded,
-      max_block_mb, segment$representation, stats)
+      max_block_mb, segment$representation, stats, field_indices)
     for (name in fields) {
       a <- out[[name]]; axis <- if (x$model == 'CHLRM' && name == 'z') 2L else 1L
       if (is.null(dim(a))) a[positions] <- part[[name]] else {
