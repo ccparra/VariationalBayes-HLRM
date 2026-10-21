@@ -1,3 +1,14 @@
+# VariationalBayesHLRM 0.2.5
+
+- Checkpoint-store decoding no longer retains encoded numeric chunks alongside
+  reconstructed arrays, and releases temporary assignment arguments promptly.
+  Object checksums, validation, formats and decoded values remain unchanged.
+- Typed checkpoint restoration binds validated plain state to fresh backends
+  using R copy-on-modify semantics instead of serializing histories again.
+  Legacy snapshots with mutable metadata retain the previous cloning path.
+  Transactional sampler cloning and checkpoint writing are unchanged. Restored
+  histories remain in RAM; this is not disk-streamed sampling.
+
 # VariationalBayesHLRM 0.2.4
 
 - Object-store checkpoint writing now reads a validated plain-state view of

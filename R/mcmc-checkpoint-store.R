@@ -83,7 +83,9 @@
   node <- readRDS(path)
   if (!is.list(node) || !is.character(node$kind) || length(node$kind) != 1L)
     stop("Invalid checkpoint store node")
-  assign(key, node, cache)
+  # Encoded value chunks are temporary inputs to decoded arrays. Retaining
+  # both representations doubles live histories during reconstruction.
+  if (!identical(node$kind, "values")) assign(key, node, cache)
   node
 }
 
@@ -121,7 +123,9 @@
         args <- c(list(value), rep(list(TRUE), length(dimensions)), list(value = block$values))
         args[[node$axis + 1L]] <- indices
         value <- do.call(`[<-`, args)
+        rm(args)
       }
+      rm(block)
       first <- first + length(indices)
     }
     attributes(value) <- if (!length(node$attributes)) NULL else

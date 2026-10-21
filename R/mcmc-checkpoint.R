@@ -27,7 +27,7 @@
   invisible(checkpoint)
 }
 
-.restore_mcmc_backend_checkpoint <- function(checkpoint) {
+.restore_mcmc_backend_checkpoint <- function(checkpoint, copy_state = .clone_mcmc_state) {
   .validate_mcmc_backend_checkpoint(checkpoint)
   model <- checkpoint$model
   sampler <- checkpoint$sampler
@@ -41,13 +41,13 @@
     HLRM = mcmc_hlrm$new(stats$y, stats$X, sampler$hyperparams, settings),
     CHLRM = mcmc_chlrm$new(stats$y, stats$X, stats$K,
                            sampler$hyperparams, settings))
-  fit[[.mcmc_object_name(model)]] <- .clone_mcmc_state(sampler)
+  fit[[.mcmc_object_name(model)]] <- copy_state(sampler)
   # Construction must not reseed, but the saved provenance settings must not
   # lose their original seed after the temporary constructor settings are used.
-  fit$run_settings <- .clone_mcmc_state(checkpoint$run_settings)
-  fit$chains <- .clone_mcmc_state(checkpoint$chains)
-  fit$rng_state <- .clone_mcmc_state(checkpoint$rng_state)
-  fit$fit_metadata <- .clone_mcmc_state(checkpoint$fit_metadata)
+  fit$run_settings <- copy_state(checkpoint$run_settings)
+  fit$chains <- copy_state(checkpoint$chains)
+  fit$rng_state <- copy_state(checkpoint$rng_state)
+  fit$fit_metadata <- copy_state(checkpoint$fit_metadata)
   fit$fit_status <- "fitted"
   fit
 }
@@ -139,11 +139,18 @@ read_mcmc_checkpoint <- function(path) {
   if (inherits(checkpoint, "vb_mcmc_store_checkpoint"))
     checkpoint <- .read_mcmc_checkpoint_store(checkpoint, path)
   .validate_typed_mcmc_checkpoint(checkpoint)
+  # Plain serialized values have R copy-on-modify semantics: binding them to
+  # fresh backends does not require serialize/unserialize copies of histories.
+  # Keep the legacy cloning path for snapshots carrying mutable metadata.
+  plain <- tryCatch({ .checkpoint_plain_state(checkpoint); TRUE },
+    error = function(e) FALSE)
+  copy_state <- if (plain) identity else .clone_mcmc_state
   fit <- checkpoint$fit
   summary_backend <- .restore_mcmc_backend_checkpoint(
-    checkpoint$summary_backend)
+    checkpoint$summary_backend, copy_state = copy_state)
   chain_backends <- lapply(
-    checkpoint$chain_backends, .restore_mcmc_backend_checkpoint)
+    checkpoint$chain_backends, .restore_mcmc_backend_checkpoint,
+    copy_state = copy_state)
   attr(fit, "backend") <- summary_backend
   if (length(chain_backends) > 1L) {
     attr(fit, "backends") <- chain_backends

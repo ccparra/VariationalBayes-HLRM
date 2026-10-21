@@ -234,3 +234,68 @@ test_that("an interrupted store write preserves old manifests and never publishe
   expect_gt(length(.checkpoint_store_files(store)), length(files))
   expect_identical(.typed_mcmc_checkpoint(read_mcmc_checkpoint(path)), .typed_mcmc_checkpoint(fit))
 })
+
+
+test_that("checkpoint reader plain-state isolation covers all families and both formats", {
+  directory <- tempfile("reader-isolation-"); dir.create(directory)
+  on.exit(unlink(directory, recursive = TRUE))
+  for (model in c("LRM", "HLRM", "CHLRM")) for (format in c("single", "store")) {
+    original <- .checkpoint_store_fit(model, 2L)
+    prefix <- file.path(directory, paste(model, format)); dir.create(prefix)
+    path <- file.path(prefix, "fit.rds")
+    save_mcmc_checkpoint(original, path,
+      store = if (format == "store") file.path(prefix, "history") else NULL, chunk_size = 4L)
+    expected <- .typed_mcmc_checkpoint(original)
+    left <- read_mcmc_checkpoint(path); right <- read_mcmc_checkpoint(path)
+    expect_identical(.typed_mcmc_checkpoint(left), expected)
+    expect_identical(.typed_mcmc_checkpoint(right), expected)
+    first <- attr(left, "backends")[[1L]]
+    slot <- if (model == "CHLRM") "Betak" else "Beta"
+    first$chains[[slot]][1L] <- first$chains[[slot]][1L] + 100
+    expect_identical(attr(left, "backend")$chains, expected$summary_backend$chains)
+    expect_identical(attr(left, "backends")[[2L]]$chains, expected$chain_backends[[2L]]$chains)
+    expect_identical(.typed_mcmc_checkpoint(right), expected)
+    expect_identical(.typed_mcmc_checkpoint(original), expected)
+    a <- .checkpoint_store_resume(right); b <- .checkpoint_store_resume(original)
+    # Fresh continuation timings/ESS per second need not agree across calls;
+    # compare the actual trajectories and RNG states exactly.
+    expect_identical(a$parameters, b$parameters)
+    expect_identical(a$latent_variables, b$latent_variables)
+    expect_identical(a$objective, b$objective)
+    for (i in 1:2) {
+      aa <- attr(a, "backends")[[i]]; bb <- attr(b, "backends")[[i]]
+      expect_identical(aa$chains, bb$chains)
+      expect_identical(aa$rng_state, bb$rng_state)
+      expect_identical(aa$run_settings, bb$run_settings)
+    }
+  }
+})
+
+test_that("legacy mutable checkpoint metadata retains independent cloned backends", {
+  directory <- tempfile("reader-metadata-"); dir.create(directory)
+  on.exit(unlink(directory, recursive = TRUE))
+  checkpoint <- .typed_mcmc_checkpoint(.checkpoint_store_fit("LRM", 2L))
+  shared <- new.env(parent = emptyenv()); shared$value <- 1
+  checkpoint$fit$metadata$opaque <- shared
+  checkpoint$summary_backend$fit_metadata$opaque <- shared
+  checkpoint$chain_backends[[1L]]$fit_metadata$opaque <- shared
+  path <- file.path(directory, "legacy.rds"); saveRDS(checkpoint, path)
+  fit <- read_mcmc_checkpoint(path)
+  attr(fit, "backend")$fit_metadata$opaque$value <- 2
+  expect_equal(fit$metadata$opaque$value, 1)
+  expect_equal(attr(fit, "backends")[[1L]]$fit_metadata$opaque$value, 1)
+  expect_equal(attr(fit, "backend")$fit_metadata$opaque$value, 2)
+})
+
+test_that("decoder retains metadata cache without retaining encoded value chunks", {
+  directory <- tempfile(); dir.create(directory); dir.create(file.path(directory, "objects"))
+  on.exit(unlink(directory, recursive = TRUE))
+  state <- matrix(seq_len(1000), 100, 10)
+  key <- .checkpoint_store_encode(state, directory, .checkpoint_store_config(20L))
+  cache <- new.env(parent = emptyenv())
+  actual <- .checkpoint_store_decode(key, directory, cache, new.env(parent = emptyenv()))
+  expect_identical(actual, state)
+  expect_true(exists(key, cache, inherits = FALSE))
+  nodes <- lapply(as.list(cache), function(x) x$kind)
+  expect_false(any(vapply(nodes, identical, logical(1L), "values")))
+})
