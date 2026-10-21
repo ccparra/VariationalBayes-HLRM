@@ -164,7 +164,7 @@ advance_mcmc_state <- function(state, additional_samples, chain = NULL,
   next_state$chains[[chain]]$rng_state <- rng_snapshot()
   next_state$chains[[chain]]$run_settings$samples <- as.integer(total)
   structure(list(schema_version = "mcmc-draw-block-1", model = state$model,
-    chain = chain, draw_index = data.frame(chain = rep.int(chain, n),
+    chain = chain, parent_state_id = .mcmc_state_id(state), draw_index = data.frame(chain = rep.int(chain, n),
       iteration = seq.int(as.integer(old) + 1L, as.integer(total))),
     draws = block$draws, state = next_state, timing = block$timing,
     resources = list(estimated_active_peak_mib = reserve / 1024^2,

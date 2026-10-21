@@ -99,3 +99,41 @@ low-level state/block API, not a complete disk-backed posterior reporting engine
 or a convergence certificate. Keep the original full checkpoint/history, and
 use existing typed fitted objects for their posterior reports. Resource guards
 bound an analytical active-state/block allowance; they do not guarantee OS RSS.
+
+
+## Immutable native draw history
+
+A complete object-store checkpoint can become a baseline for an immutable
+history. Subsequent generations store new blocks and current restart state,
+without reconstructing or rewriting old arrays. Keep the baseline checkpoint
+and its object store: the history references that dependency by checksum and
+relative path. Relocating a history requires preserving the dependency tree.
+
+```{r, eval=FALSE}
+save_mcmc_checkpoint(mcmc_fit, "baseline.rds", "baseline-store")
+history <- create_mcmc_history("baseline.rds", "native-history")
+state <- mcmc_history_restart_state(history)
+block <- advance_mcmc_state(state, additional_samples = 500, chain = 1,
+                            max_memory_mb = 512)
+next_history <- append_mcmc_history(history, block)
+selected <- mcmc_history_draws(next_history, chain = 1,
+  iterations = c(1, 100, 2001, 2500), fields = c("Beta", "logjoint"))
+# Old snapshots remain readable; reload after an interrupted append.
+latest_history <- read_mcmc_history("native-history")
+```
+
+Reads retain native parameter names, working scale, raw component labels and
+original per-chain iteration identities. They do not align labels, restore a
+fitted-model object, compute posterior predictions, or certify convergence.
+CHLRM's new blocks verify group histories exactly against component draws and
+allocations, then store an equivalent derived representation; reads reconstruct
+those group values without altering samples. Existing baseline arrays remain
+intact. Requested-output and decoded-chunk guards are analytical allowances,
+not operating-system RSS guarantees. A large historical baseline chunk may
+require an explicit larger chunk allowance; it is never silently truncated.
+
+Append is single-writer, rejects stale or mismatched parent states, and publishes
+a new immutable snapshot only after all dependencies exist. Failed publication
+leaves older snapshots valid and may leave unreferenced objects. No automatic
+resampling, sampling retry, or garbage collection occurs. Separate chain
+frontiers do not qualify as a complete matched prefix for joint diagnostics.

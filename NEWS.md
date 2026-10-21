@@ -1,3 +1,19 @@
+# VariationalBayesHLRM 0.2.9
+
+- Immutable MCMC history snapshots link a complete object-store baseline and
+  append exactly parent-bound native blocks. Old snapshots remain readable;
+  duplicate, stale, gapped and wrong-parent appends are rejected. Publication
+  occurs last under a single-writer lock, preserving previous generations on
+  failure. The baseline remains a retained, checksum-bound dependency.
+- `mcmc_history_draws()` reads selected native fields and retained iterations
+  across baseline/new blocks with output/chunk guards, without reconstructing
+  past arrays. New CHLRM group fields use a verified lossless representation
+  derived from component parameters and allocations. No draw is thinned or lost.
+- Current restart state can be recovered independently from each snapshot.
+  `advance_mcmc_state()` now records its exact parent state identity. These
+  history APIs retain native labels/working scale and are not a disk-backed
+  posterior-reporting fit or a scientific convergence certificate.
+
 # VariationalBayesHLRM 0.2.8
 
 - History-free MCMC restart states preserve current native sampler and per-chain
