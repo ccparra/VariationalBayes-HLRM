@@ -293,5 +293,7 @@ predictive_performance_from_draws <- function(fit, newdata, posterior_draws,
   result <- new_predictive_performance_result(fit, predictive_target, level,
     unlist(data$y, use.names = FALSE), mean_prediction, response_prediction, score)
   result$metadata$draw_source <- score$metadata$draw_source
+  result$metadata$draw_counts <- c(mean = nrow(mean_draws$draw_index),
+    response = nrow(response_draws$draw_index), scoring = nrow(score_draws$draw_index))
   result
 }

@@ -102,6 +102,8 @@ test_that("typed predictions from persisted CHLRM histories equal fit prediction
     fit_sampled_performance$log_score_pointwise)
   expect_identical(sampled_history_performance$statistics,
     fit_sampled_performance$statistics)
+  expect_identical(unname(sampled_history_performance$metadata$draw_counts),
+    rep(4L, 3L))
 })
 
 test_that("history posterior draws enforce explicit memory and source contracts", {
