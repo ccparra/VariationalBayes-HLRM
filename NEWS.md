@@ -1,3 +1,13 @@
+# VariationalBayesHLRM 0.2.11
+
+- Add typed posterior extraction from persisted CHLRM MCMC histories with
+  bounded draw selection, explicit chain/iteration provenance, and scaling
+  restoration. Mean prediction, posterior response prediction, and held-out
+  predictive performance now accept those typed draws through package methods.
+  The history scoring entry point reproduces the package's independent seeded
+  draw subsets for prediction, response simulation, and log scoring. These
+  operations read histories without fitting or modifying them.
+
 # VariationalBayesHLRM 0.2.10
 
 - `mcmc_history_draws()` can select coordinates along non-iteration dimensions

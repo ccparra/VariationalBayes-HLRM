@@ -204,6 +204,7 @@ NULL
 #' @param seed Optional reproducibility seed.
 #' @param return_yrep Whether to retain posterior replicated responses.
 #' @param return_log_likelihood Whether to retain the pointwise matrix.
+#' @param return_draws Whether to retain simulated posterior predictions.
 #' @param max_output_mb Allocation budget in MiB.
 #' @param discrepancies A discrepancy specification from `ppc_discrepancies()`.
 #' @param statistics Named posterior predictive discrepancy statistics.
